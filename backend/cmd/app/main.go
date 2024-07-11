@@ -1,7 +1,9 @@
 package main
 
-import "log/slog"
+import (
+	"github.com/usamaroman/music_room/backend/internal/app"
+)
 
 func main() {
-	slog.Info("init")
+	app.NewService().Run()
 }
