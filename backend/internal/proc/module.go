@@ -9,6 +9,10 @@ import (
 
 const moduleName = "proc"
 
+type HTTPServer interface {
+	RegisterRoutes()
+}
+
 func New() fx.Option {
 	return fx.Module(
 		moduleName,
@@ -20,6 +24,7 @@ func New() fx.Option {
 		fx.Invoke(
 			func(lc fx.Lifecycle, p *proc) {
 				lc.Append(procOnStart(p))
+				lc.Append(registerRouter(p))
 			},
 		),
 
@@ -31,14 +36,30 @@ func New() fx.Option {
 
 func procOnStart(p *proc) fx.Hook {
 	return fx.Hook{
-		OnStart: func(ctx context.Context) error {
+		OnStart: func(_ context.Context) error {
 			p.log.Info("proc started")
+
+			go func() {
+				if err := p.httpsrv.ListenAndServe(); err != nil {
+					p.log.Error("failed to listen and serve http server", zap.Error(err))
+					return
+				}
+			}()
 
 			return nil
 		},
-		OnStop: func(ctx context.Context) error {
+		OnStop: func(_ context.Context) error {
 			p.log.Info("proc stopped")
 
+			return nil
+		},
+	}
+}
+
+func registerRouter(p HTTPServer) fx.Hook {
+	return fx.Hook{
+		OnStart: func(_ context.Context) error {
+			p.RegisterRoutes()
 			return nil
 		},
 	}
