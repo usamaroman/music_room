@@ -1,3 +1,9 @@
 http:
   host:
   port:
+postgresql:
+  user:
+  password:
+  host:
+  port:
+  database:

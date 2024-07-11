@@ -3,6 +3,8 @@ package proc
 import (
 	"context"
 
+	"github.com/usamaroman/music_room/backend/internal/storage"
+
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -19,6 +21,11 @@ func New() fx.Option {
 
 		fx.Provide(
 			NewProc,
+			storage.NewCollection,
+		),
+
+		fx.Options(
+			storage.NewModule(),
 		),
 
 		fx.Invoke(
