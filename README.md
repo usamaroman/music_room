@@ -1,2 +1,2 @@
 # Music Room 
-## Application for collaborative music listening for people 
+## Application for collabarative music listening for people 
