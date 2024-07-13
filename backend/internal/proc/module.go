@@ -2,9 +2,9 @@ package proc
 
 import (
 	"context"
-	"github.com/usamaroman/music_room/backend/pkg/redis"
 
 	"github.com/usamaroman/music_room/backend/internal/storage"
+	"github.com/usamaroman/music_room/backend/pkg/redis"
 
 	"go.uber.org/fx"
 	"go.uber.org/zap"

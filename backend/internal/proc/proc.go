@@ -1,10 +1,12 @@
 package proc
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"github.com/jackc/pgx/v5"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/usamaroman/music_room/backend/internal/config"
 	"github.com/usamaroman/music_room/backend/internal/proc/request"
@@ -15,6 +17,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/jackc/pgx/v5"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -24,6 +27,8 @@ type Collections interface {
 }
 
 type Cache interface {
+	Set(ctx context.Context, key string, value any, expiration time.Duration)
+	Get(ctx context.Context, key string) (string, error)
 }
 
 type proc struct {
@@ -61,7 +66,7 @@ func (p *proc) RegisterRoutes() {
 
 	apiGroup.POST("/registration", p.registration)
 	apiGroup.POST("/login", p.login)
-	apiGroup.POST("/code", p.verificationCode)
+	apiGroup.POST("/code/:userID", p.verificationCode)
 	apiGroup.POST("/submit", p.submitCode)
 }
 
@@ -218,7 +223,44 @@ func (p *proc) login(c *gin.Context) {
 }
 
 func (p *proc) verificationCode(c *gin.Context) {
+	id := c.Param("userID")
 
+	userID, err := strconv.Atoi(id)
+	if err != nil {
+		p.log.Error("failed to convert string to int", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+
+	exists, err := p.storage.Users().ExistsByID(c, userID)
+	if err != nil {
+		p.log.Error("failed to check user for existing", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"err": "user does not exist",
+		})
+
+		return
+	}
+
+	code := 1111
+
+	p.cache.Set(c, strconv.Itoa(userID), code, 60*time.Second)
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":   code,
+		"userID": userID,
+	})
 }
 
 func (p *proc) submitCode(c *gin.Context) {
