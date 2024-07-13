@@ -7,3 +7,4 @@ create table if not exists users (
     avatar varchar(255) not null unique,
     created_at timestamp with time zone default now()
 )
+
