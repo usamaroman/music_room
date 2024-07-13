@@ -11,5 +11,6 @@ type User struct {
 	Nickname  string         `json:"nickname"`
 	Password  string         `json:"-"`
 	Avatar    sql.NullString `json:"avatar"`
+	IsActive  bool           `json:"is_active"`
 	CreatedAt time.Time      `json:"created_at"`
 }

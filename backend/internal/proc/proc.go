@@ -13,11 +13,12 @@ import (
 	"github.com/usamaroman/music_room/backend/internal/storage"
 	"github.com/usamaroman/music_room/backend/internal/storage/dbo"
 	"github.com/usamaroman/music_room/backend/internal/storage/repo"
-	"github.com/usamaroman/music_room/backend/pkg/redis"
+	rds "github.com/usamaroman/music_room/backend/pkg/redis"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -40,7 +41,7 @@ type proc struct {
 	cache   Cache
 }
 
-func NewProc(logger *zap.Logger, cfg *config.Config, storage *storage.Collection, redisClient *redis.Client) *proc {
+func NewProc(logger *zap.Logger, cfg *config.Config, storage *storage.Collection, redisClient *rds.Client) *proc {
 	router := gin.Default()
 
 	return &proc{
@@ -264,5 +265,63 @@ func (p *proc) verificationCode(c *gin.Context) {
 }
 
 func (p *proc) submitCode(c *gin.Context) {
+	var req request.Submit
 
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		p.log.Error("failed to bind request", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+
+	value, err := p.cache.Get(c, req.UserID)
+	if err == redis.Nil {
+		p.log.Error("key does not exist", zap.String("key", req.UserID))
+		c.JSON(http.StatusBadRequest, gin.H{
+			"err": "key does not exist",
+		})
+
+		return
+	} else if err != nil {
+		p.log.Error("failed to get value", zap.String("key", req.UserID))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+
+	if value != req.Code {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"err": "wrong code",
+		})
+
+		return
+	}
+
+	id, err := strconv.Atoi(req.UserID)
+	if err != nil {
+		p.log.Error("failed to convert int to string", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+
+	if err = p.storage.Users().SetActive(c, id); err != nil {
+		p.log.Error("failed to update user", zap.Int("id", id), zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"msg": "user registered",
+	})
 }

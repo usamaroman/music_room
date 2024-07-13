@@ -86,7 +86,7 @@ func (repo *Users) ByID(ctx context.Context, id int) (*dbo.User, error) {
 	q := `select id, email, nickname, password, avatar, created_at from users where id = $1`
 
 	var user dbo.User
-	if err := repo.qb.Pool().QueryRow(ctx, q, id).Scan(&user); err != nil {
+	if err := repo.qb.Pool().QueryRow(ctx, q, id).Scan(&user.ID, &user.Email, &user.Nickname, &user.Password, &user.Avatar, &user.IsActive, &user.CreatedAt); err != nil {
 		repo.log.Error("failed to get user from database", zap.Int("id", id), zap.Error(err))
 		return nil, err
 	}
@@ -95,13 +95,27 @@ func (repo *Users) ByID(ctx context.Context, id int) (*dbo.User, error) {
 }
 
 func (repo *Users) ByEmail(ctx context.Context, email string) (*dbo.User, error) {
-	q := `select id, email, nickname, password, avatar, created_at from users where email = $1`
+	q := `select id, email, nickname, password, avatar, is_active, created_at from users where email = $1`
 
 	var user dbo.User
-	if err := repo.qb.Pool().QueryRow(ctx, q, email).Scan(&user.ID, &user.Email, &user.Nickname, &user.Password, &user.Avatar, &user.CreatedAt); err != nil {
+	if err := repo.qb.Pool().QueryRow(ctx, q, email).Scan(&user.ID, &user.Email, &user.Nickname, &user.Password, &user.Avatar, &user.IsActive, &user.CreatedAt); err != nil {
 		repo.log.Error("failed to get user from database", zap.String("email", email), zap.Error(err))
 		return nil, err
 	}
 
 	return &user, nil
+}
+
+func (repo *Users) SetActive(ctx context.Context, id int) error {
+	q := `update users set is_active = true where id = $1`
+
+	exec, err := repo.qb.Pool().Exec(ctx, q, id)
+	if err != nil {
+		repo.log.Error("failed to update user", zap.Int("id", id), zap.Error(err))
+		return err
+	}
+
+	repo.log.Info("executed", zap.Int64("rows affected", exec.RowsAffected()))
+
+	return nil
 }
