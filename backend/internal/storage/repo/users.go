@@ -2,12 +2,9 @@ package repo
 
 import (
 	"context"
-	"errors"
-
 	"github.com/usamaroman/music_room/backend/internal/storage/dbo"
 	"github.com/usamaroman/music_room/backend/pkg/postgresql"
 
-	"github.com/jackc/pgx/v5"
 	"go.uber.org/zap"
 )
 
@@ -90,10 +87,6 @@ func (repo *Users) ByID(ctx context.Context, id int) (*dbo.User, error) {
 
 	var user dbo.User
 	if err := repo.qb.Pool().QueryRow(ctx, q, id).Scan(&user); err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return &user, nil
-		}
-
 		repo.log.Error("failed to get user from database", zap.Int("id", id), zap.Error(err))
 		return nil, err
 	}
@@ -105,11 +98,7 @@ func (repo *Users) ByEmail(ctx context.Context, email string) (*dbo.User, error)
 	q := `select id, email, nickname, password, avatar, created_at from users where email = $1`
 
 	var user dbo.User
-	if err := repo.qb.Pool().QueryRow(ctx, q, email).Scan(&user); err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return &user, nil
-		}
-
+	if err := repo.qb.Pool().QueryRow(ctx, q, email).Scan(&user.ID, &user.Email, &user.Nickname, &user.Password, &user.Avatar, &user.CreatedAt); err != nil {
 		repo.log.Error("failed to get user from database", zap.String("email", email), zap.Error(err))
 		return nil, err
 	}

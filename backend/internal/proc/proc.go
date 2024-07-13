@@ -1,7 +1,9 @@
 package proc
 
 import (
+	"errors"
 	"fmt"
+	"github.com/jackc/pgx/v5"
 	"net/http"
 
 	"github.com/usamaroman/music_room/backend/internal/config"
@@ -152,7 +154,67 @@ func (p *proc) registration(c *gin.Context) {
 }
 
 func (p *proc) login(c *gin.Context) {
-	c.String(http.StatusOK, "login\n")
+	var req request.Login
+
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		p.log.Error("failed to bind request", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+
+	err = validator.New().Struct(req)
+	if err != nil {
+		p.log.Error("failed to validate struct", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+
+	user, err := p.storage.Users().ByEmail(c, req.Email)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"err": "no such user",
+			})
+
+			return
+		}
+
+		p.log.Error("failed to get user", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
+	if err != nil {
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"err": "wrong password",
+			})
+
+			return
+		}
+
+		p.log.Error("failed to compare passwords", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"user": user,
+	})
 }
 
 func (p *proc) verificationCode(c *gin.Context) {
