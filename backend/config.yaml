@@ -1,3 +1,14 @@
 http:
   host:
   port:
+postgresql:
+  user:
+  password:
+  host:
+  port:
+  database:
+redis:
+  password:
+  host:
+  port:
+  database:
