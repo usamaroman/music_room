@@ -53,7 +53,7 @@ func (p *proc) RegisterRoutes() {
 		c.String(http.StatusOK, "health\n")
 	})
 
-	apiGroup := p.router.Group("/api")
+	apiGroup := p.router.Group("/auth")
 
 	apiGroup.POST("/registration", p.registration)
 	apiGroup.POST("/login", p.login)
