@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/usamaroman/music_room/backend/pkg/utils"
 	"net/http"
 	"strconv"
 	"time"
@@ -21,6 +22,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
+	gomail "gopkg.in/mail.v2"
 )
 
 type Collections interface {
@@ -33,6 +35,7 @@ type Cache interface {
 }
 
 type proc struct {
+	cfg *config.Config
 	log *zap.Logger
 
 	router  *gin.Engine
@@ -46,6 +49,7 @@ func NewProc(logger *zap.Logger, cfg *config.Config, storage *storage.Collection
 
 	return &proc{
 		log:    logger,
+		cfg:    cfg,
 		router: router,
 		httpsrv: &http.Server{
 			Addr:    fmt.Sprintf("%s:%s", cfg.HTTP.Host, cfg.HTTP.Port),
@@ -236,9 +240,17 @@ func (p *proc) verificationCode(c *gin.Context) {
 		return
 	}
 
-	exists, err := p.storage.Users().ExistsByID(c, userID)
+	user, err := p.storage.Users().ByID(c, userID)
 	if err != nil {
-		p.log.Error("failed to check user for existing", zap.Error(err))
+		if errors.Is(err, pgx.ErrNoRows) {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"err": "user does not exist",
+			})
+
+			return
+		}
+
+		p.log.Error("failed to get user", zap.Int("id", userID), zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"err": err.Error(),
 		})
@@ -246,15 +258,18 @@ func (p *proc) verificationCode(c *gin.Context) {
 		return
 	}
 
-	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"err": "user does not exist",
-		})
+	code := utils.GenerateNumber()
 
-		return
+	m := gomail.NewMessage()
+	m.SetHeader("From", p.cfg.SMTP.Email)
+	m.SetHeader("To", user.Email)
+	m.SetHeader("Subject", "Verification Code")
+	m.SetBody("text/plain", fmt.Sprintf("code is %d", code))
+	d := gomail.NewDialer("smtp.gmail.com", 587, p.cfg.SMTP.Email, p.cfg.SMTP.Password)
+
+	if err = d.DialAndSend(m); err != nil {
+		fmt.Println(err)
 	}
-
-	code := 1111
 
 	p.cache.Set(c, strconv.Itoa(userID), code, 60*time.Second)
 

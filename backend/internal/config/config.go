@@ -24,6 +24,10 @@ type Config struct {
 		Password string `yaml:"password" env:"REDIS_PASSWORD" env-default:"6379"`
 		Database int    `yaml:"database" env:"REDIS_DATABASE" env-default:"0"`
 	} `yaml:"redis"`
+	SMTP struct {
+		Email    string `yaml:"email" env:"SMTP_EMAIL" env-default:"testcarbookingservice@gmail.com"`
+		Password string `yaml:"password" env:"SMTP_PASSWORD" env-default:"dykp brpi kneo lrsh"`
+	} `yaml:"smtp"`
 }
 
 func New(log *zap.Logger) (*Config, error) {

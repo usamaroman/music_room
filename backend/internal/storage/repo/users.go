@@ -84,7 +84,7 @@ func (repo *Users) ExistsBYNickname(ctx context.Context, nickname string) (bool,
 }
 
 func (repo *Users) ByID(ctx context.Context, id int) (*dbo.User, error) {
-	q := `select id, email, nickname, password, avatar, created_at from users where id = $1`
+	q := `select id, email, nickname, password, avatar, is_active, created_at from users where id = $1`
 
 	var user dbo.User
 	if err := repo.qb.Pool().QueryRow(ctx, q, id).Scan(&user.ID, &user.Email, &user.Nickname, &user.Password, &user.Avatar, &user.IsActive, &user.CreatedAt); err != nil {
