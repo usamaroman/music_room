@@ -1,1 +1,0 @@
-alter table users drop column if exists mobile_phone;

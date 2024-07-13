@@ -2,17 +2,19 @@ package proc
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/usamaroman/music_room/backend/internal/config"
 	"github.com/usamaroman/music_room/backend/internal/proc/request"
 	"github.com/usamaroman/music_room/backend/internal/storage"
 	"github.com/usamaroman/music_room/backend/internal/storage/dbo"
 	"github.com/usamaroman/music_room/backend/internal/storage/repo"
 	"github.com/usamaroman/music_room/backend/pkg/redis"
-	"golang.org/x/crypto/bcrypt"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Collections interface {
@@ -74,7 +76,17 @@ func (p *proc) registration(c *gin.Context) {
 		return
 	}
 
-	user, err := p.storage.Users().ByEmail(c, req.Email)
+	err = validator.New().Struct(req)
+	if err != nil {
+		p.log.Error("failed to validate struct", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+
+	exists, err := p.storage.Users().ExistsBYEmail(c, req.Email)
 	if err != nil {
 		p.log.Error("failed to check user for existing", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -84,7 +96,7 @@ func (p *proc) registration(c *gin.Context) {
 		return
 	}
 
-	if user.ID != 0 {
+	if exists {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"err": "email is already used",
 		})
@@ -92,7 +104,7 @@ func (p *proc) registration(c *gin.Context) {
 		return
 	}
 
-	exists, err := p.storage.Users().ExistsBYNickname(c, req.Nickname)
+	exists, err = p.storage.Users().ExistsBYNickname(c, req.Nickname)
 	if err != nil {
 		p.log.Error("failed to check user for existing", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -120,7 +132,7 @@ func (p *proc) registration(c *gin.Context) {
 		return
 	}
 
-	err = p.storage.Users().Create(c, &dbo.User{
+	userID, err := p.storage.Users().Create(c, &dbo.User{
 		Email:    req.Email,
 		Nickname: req.Nickname,
 		Password: string(generateFromPassword),
@@ -134,7 +146,9 @@ func (p *proc) registration(c *gin.Context) {
 		return
 	}
 
-	c.String(http.StatusOK, "registration\n")
+	c.JSON(http.StatusOK, gin.H{
+		"id": userID,
+	})
 }
 
 func (p *proc) login(c *gin.Context) {
