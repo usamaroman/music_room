@@ -7,3 +7,8 @@ postgresql:
   host:
   port:
   database:
+redis:
+  password:
+  host:
+  port:
+  database:

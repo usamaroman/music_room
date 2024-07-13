@@ -1,2 +1,5 @@
 .idea
 .vscode
+app_pg_data
+app_redis_data
+app_minio_data

@@ -2,6 +2,7 @@ package proc
 
 import (
 	"context"
+	"github.com/usamaroman/music_room/backend/pkg/redis"
 
 	"github.com/usamaroman/music_room/backend/internal/storage"
 
@@ -26,6 +27,7 @@ func New() fx.Option {
 
 		fx.Options(
 			storage.NewModule(),
+			redis.NewModule(),
 		),
 
 		fx.Invoke(

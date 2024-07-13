@@ -12,7 +12,7 @@ services:
       MINIO_ROOT_USER: minio
       MINIO_ROOT_PASSWORD: minio123
     volumes:
-      - ./minio-storage:/data
+      - ./app_minio_data:/data
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
       interval: 30s
@@ -30,3 +30,16 @@ services:
       - ./app_pg_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+
+  redis:
+    container_name: redis
+    image: redis:6.2-alpine
+    restart: always
+    environment:
+      - REDIS_PASSWORD=6379
+      - REDIS_PORT=6379
+      - REDIS_DATABASES=0
+    volumes:
+      - ./app_redis_data:/data
+    ports:
+      - '6379:6379'

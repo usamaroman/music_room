@@ -6,7 +6,7 @@ import (
 
 	"github.com/usamaroman/music_room/backend/internal/config"
 	"github.com/usamaroman/music_room/backend/internal/storage/repo"
-	"github.com/usamaroman/music_room/backend/pkg/db"
+	"github.com/usamaroman/music_room/backend/pkg/postgresql"
 	"github.com/usamaroman/music_room/backend/schema"
 
 	"go.uber.org/fx"
@@ -23,7 +23,7 @@ func NewModule() fx.Option {
 			repo.NewUsers,
 		),
 
-		fx.Options(db.NewModule()),
+		fx.Options(postgresql.NewModule()),
 
 		fx.Invoke(func(
 			lc fx.Lifecycle,
@@ -40,7 +40,7 @@ func NewModule() fx.Option {
 						cfg.Database.Database,
 					)
 
-					db.Migrate(log, &schema.DB, url)
+					postgresql.Migrate(log, &schema.DB, url)
 
 					return nil
 				},
