@@ -21,6 +21,7 @@ func NewModule() fx.Option {
 
 		fx.Provide(
 			repo.NewUsers,
+			repo.NewTracks,
 		),
 
 		fx.Options(postgresql.NewModule()),

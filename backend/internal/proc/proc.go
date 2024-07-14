@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -14,11 +15,13 @@ import (
 	"github.com/usamaroman/music_room/backend/internal/storage/dbo"
 	"github.com/usamaroman/music_room/backend/internal/storage/repo"
 	"github.com/usamaroman/music_room/backend/pkg/jwt"
+	"github.com/usamaroman/music_room/backend/pkg/minio"
 	rds "github.com/usamaroman/music_room/backend/pkg/redis"
 	"github.com/usamaroman/music_room/backend/pkg/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
@@ -28,11 +31,17 @@ import (
 
 type Collections interface {
 	Users() *repo.Users
+	Tracks() *repo.Tracks
 }
 
 type Cache interface {
 	Set(ctx context.Context, key string, value any, expiration time.Duration)
 	Get(ctx context.Context, key string) (string, error)
+}
+
+type S3 interface {
+	SaveMp3(ctx context.Context, filename, filepath string) error
+	SaveImage(ctx context.Context, filename, filepath string) error
 }
 
 type proc struct {
@@ -43,9 +52,10 @@ type proc struct {
 	httpsrv *http.Server
 	storage Collections
 	cache   Cache
+	s3      S3
 }
 
-func NewProc(logger *zap.Logger, cfg *config.Config, storage *storage.Collection, redisClient *rds.Client) *proc {
+func NewProc(logger *zap.Logger, cfg *config.Config, storage *storage.Collection, redisClient *rds.Client, minio *minio.Client) *proc {
 	router := gin.Default()
 
 	return &proc{
@@ -58,6 +68,7 @@ func NewProc(logger *zap.Logger, cfg *config.Config, storage *storage.Collection
 		},
 		storage: storage,
 		cache:   redisClient,
+		s3:      minio,
 	}
 }
 
@@ -69,12 +80,16 @@ func (p *proc) RegisterRoutes() {
 	})
 
 	apiGroup := p.router.Group("/auth")
-
 	apiGroup.POST("/registration", p.registration)
 	apiGroup.POST("/login", p.login)
 	apiGroup.POST("/code/:userID", p.verificationCode)
 	apiGroup.POST("/submit", p.submitCode)
 	apiGroup.POST("/refresh", p.refreshToken)
+
+	tracksGroup := p.router.Group("/tracks")
+	tracksGroup.POST("", p.createTrack)
+	tracksGroup.GET("", p.getTracks)
+	tracksGroup.GET("/:trackID", p.getTrack)
 }
 
 func (p *proc) registration(c *gin.Context) {
@@ -296,10 +311,7 @@ func (p *proc) verificationCode(c *gin.Context) {
 
 	p.cache.Set(c, strconv.Itoa(userID), code, 60*time.Second)
 
-	c.JSON(http.StatusOK, gin.H{
-		"code":   code,
-		"userID": userID,
-	})
+	c.JSON(http.StatusNoContent, nil)
 }
 
 func (p *proc) submitCode(c *gin.Context) {
@@ -401,6 +413,14 @@ func (p *proc) refreshToken(c *gin.Context) {
 
 	user, err := p.storage.Users().ByID(c, int(id))
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"err": "user does not exist",
+			})
+
+			return
+		}
+
 		p.log.Error("failed to get user", zap.Int("id", int(id)), zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"err": err.Error(),
@@ -433,4 +453,156 @@ func (p *proc) refreshToken(c *gin.Context) {
 		"access_token":  accessToken,
 		"refresh_token": refreshToken,
 	})
+}
+
+func (p *proc) createTrack(c *gin.Context) {
+	var req request.Track
+
+	if err := c.ShouldBind(&req); err != nil {
+		p.log.Error("failed to bind request", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+
+	mp3File, err := c.FormFile("track")
+	if err != nil {
+		p.log.Error("failed to get mp3 file", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+	mp3File.Filename = uuid.New().String() + ".mp3"
+
+	mp3Path := fmt.Sprintf("./uploads/%s", mp3File.Filename)
+	if err = c.SaveUploadedFile(mp3File, mp3Path); err != nil {
+		p.log.Error("failed to save mp3 file", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+
+	err = p.s3.SaveMp3(c, mp3File.Filename, mp3Path)
+	if err != nil {
+		p.log.Error("failed to save mp3 file into s3", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+
+	imageFile, err := c.FormFile("image")
+	if err != nil {
+		p.log.Error("failed to get image file", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+	imageFile.Filename = uuid.New().String() + ".png"
+
+	imagePath := fmt.Sprintf("./uploads/%s", imageFile.Filename)
+	if err = c.SaveUploadedFile(imageFile, imagePath); err != nil {
+		p.log.Error("failed to save image file", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+
+	err = p.s3.SaveImage(c, imageFile.Filename, imagePath)
+	if err != nil {
+		p.log.Error("failed to save image into s3", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+
+	defer func() {
+		if err = os.RemoveAll("./uploads"); err != nil {
+			p.log.Error("failed to remove files", zap.Error(err))
+			return
+		}
+	}()
+
+	trackID, err := p.storage.Tracks().Create(c, &dbo.Track{
+		Title:    req.Title,
+		Artist:   req.Artist,
+		Cover:    imageFile.Filename,
+		Mp3:      mp3File.Filename,
+		Duration: 0,
+	})
+	if err != nil {
+		p.log.Error("failed to save track into database", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"track_id": trackID,
+	})
+}
+
+func (p *proc) getTracks(c *gin.Context) {
+	tracks, err := p.storage.Tracks().GetAll(c)
+	if err != nil {
+		p.log.Error("failed to get all tracks", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"tracks": tracks,
+	})
+}
+
+func (p *proc) getTrack(c *gin.Context) {
+	id := c.Param("trackID")
+
+	trackID, err := strconv.Atoi(id)
+	if err != nil {
+		p.log.Error("failed to convert string to int", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+
+	track, err := p.storage.Tracks().ByID(c, trackID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"err": "track does not exist",
+			})
+
+			return
+		}
+
+		p.log.Error("failed to get tracks", zap.Int("track id", trackID), zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+
+	c.JSON(http.StatusOK, track)
 }

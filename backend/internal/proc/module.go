@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/usamaroman/music_room/backend/internal/storage"
+	"github.com/usamaroman/music_room/backend/pkg/minio"
 	"github.com/usamaroman/music_room/backend/pkg/redis"
 
 	"go.uber.org/fx"
@@ -28,6 +29,7 @@ func New() fx.Option {
 		fx.Options(
 			storage.NewModule(),
 			redis.NewModule(),
+			minio.NewModule(),
 		),
 
 		fx.Invoke(
