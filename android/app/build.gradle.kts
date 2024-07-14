@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    kotlin ("kapt")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -69,4 +71,31 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     implementation(libs.androidx.material.icons.extended)
+
+    implementation (libs.retrofit)
+    implementation (libs.converter.gson)
+
+    //hilt
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.android.compiler)
+    kapt(libs.androidx.hilt.compiler)
+    implementation(libs.androidx.hilt.work)
+
+    implementation (libs.androidx.work.runtime.ktx)
+    implementation (libs.retrofit)
+    implementation(platform(libs.okhttp.bom))
+    implementation(libs.okhttp3.okhttp)
+    implementation(libs.okhttp3.logging.interceptor)
+    implementation (libs.converter.gson.v250)
+
+    val nav_version = "2.7.7"
+
+    implementation("androidx.navigation:navigation-compose:$nav_version")
+    implementation ("com.google.accompanist:accompanist-navigation-animation:0.28.0")
+}
+
+
+
+kapt {
+    correctErrorTypes = true
 }
