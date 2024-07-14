@@ -536,7 +536,7 @@ func (p *proc) createTrack(c *gin.Context) {
 		}
 	}()
 
-	err = p.storage.Tracks().Create(c, &dbo.Track{
+	trackID, err := p.storage.Tracks().Create(c, &dbo.Track{
 		Title:    req.Title,
 		Artist:   req.Artist,
 		Cover:    imageFile.Filename,
@@ -552,7 +552,9 @@ func (p *proc) createTrack(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, fmt.Sprintf("Uploaded MP3 file to %s and image file to %s", mp3Path, imagePath))
+	c.JSON(http.StatusCreated, gin.H{
+		"track_id": trackID,
+	})
 }
 
 func (p *proc) getTracks(c *gin.Context) {
