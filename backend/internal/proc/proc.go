@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -14,11 +15,13 @@ import (
 	"github.com/usamaroman/music_room/backend/internal/storage/dbo"
 	"github.com/usamaroman/music_room/backend/internal/storage/repo"
 	"github.com/usamaroman/music_room/backend/pkg/jwt"
+	"github.com/usamaroman/music_room/backend/pkg/minio"
 	rds "github.com/usamaroman/music_room/backend/pkg/redis"
 	"github.com/usamaroman/music_room/backend/pkg/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
@@ -36,6 +39,11 @@ type Cache interface {
 	Get(ctx context.Context, key string) (string, error)
 }
 
+type S3 interface {
+	SaveMp3(ctx context.Context, filename, filepath string) error
+	SaveImage(ctx context.Context, filename, filepath string) error
+}
+
 type proc struct {
 	cfg *config.Config
 	log *zap.Logger
@@ -44,9 +52,10 @@ type proc struct {
 	httpsrv *http.Server
 	storage Collections
 	cache   Cache
+	s3      S3
 }
 
-func NewProc(logger *zap.Logger, cfg *config.Config, storage *storage.Collection, redisClient *rds.Client) *proc {
+func NewProc(logger *zap.Logger, cfg *config.Config, storage *storage.Collection, redisClient *rds.Client, minio *minio.Client) *proc {
 	router := gin.Default()
 
 	return &proc{
@@ -59,6 +68,7 @@ func NewProc(logger *zap.Logger, cfg *config.Config, storage *storage.Collection
 		},
 		storage: storage,
 		cache:   redisClient,
+		s3:      minio,
 	}
 }
 
@@ -301,10 +311,7 @@ func (p *proc) verificationCode(c *gin.Context) {
 
 	p.cache.Set(c, strconv.Itoa(userID), code, 60*time.Second)
 
-	c.JSON(http.StatusOK, gin.H{
-		"code":   code,
-		"userID": userID,
-	})
+	c.JSON(http.StatusNoContent, nil)
 }
 
 func (p *proc) submitCode(c *gin.Context) {
@@ -462,27 +469,90 @@ func (p *proc) createTrack(c *gin.Context) {
 
 	mp3File, err := c.FormFile("track")
 	if err != nil {
-		c.String(http.StatusBadRequest, fmt.Sprintf("get mp3 file err: %s", err.Error()))
+		p.log.Error("failed to get mp3 file", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{
+			"err": err.Error(),
+		})
+
 		return
 	}
+	mp3File.Filename = uuid.New().String() + ".mp3"
+
 	mp3Path := fmt.Sprintf("./uploads/%s", mp3File.Filename)
-	if err := c.SaveUploadedFile(mp3File, mp3Path); err != nil {
-		c.String(http.StatusInternalServerError, fmt.Sprintf("save mp3 file err: %s", err.Error()))
+	if err = c.SaveUploadedFile(mp3File, mp3Path); err != nil {
+		p.log.Error("failed to save mp3 file", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+
+	err = p.s3.SaveMp3(c, mp3File.Filename, mp3Path)
+	if err != nil {
+		p.log.Error("failed to save mp3 file into s3", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"err": err.Error(),
+		})
+
 		return
 	}
 
 	imageFile, err := c.FormFile("image")
 	if err != nil {
-		c.String(http.StatusBadRequest, fmt.Sprintf("get image file err: %s", err.Error()))
+		p.log.Error("failed to get image file", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{
+			"err": err.Error(),
+		})
+
 		return
 	}
+	imageFile.Filename = uuid.New().String() + ".png"
+
 	imagePath := fmt.Sprintf("./uploads/%s", imageFile.Filename)
-	if err := c.SaveUploadedFile(imageFile, imagePath); err != nil {
-		c.String(http.StatusInternalServerError, fmt.Sprintf("save image file err: %s", err.Error()))
+	if err = c.SaveUploadedFile(imageFile, imagePath); err != nil {
+		p.log.Error("failed to save image file", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"err": err.Error(),
+		})
+
 		return
 	}
 
-	c.String(http.StatusOK, fmt.Sprintf("Uploaded MP3 file to %s and image file to %s", mp3Path, imagePath))
+	err = p.s3.SaveImage(c, imageFile.Filename, imagePath)
+	if err != nil {
+		p.log.Error("failed to save image into s3", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+
+	defer func() {
+		if err = os.RemoveAll("./uploads"); err != nil {
+			p.log.Error("failed to remove files", zap.Error(err))
+			return
+		}
+	}()
+
+	err = p.storage.Tracks().Create(c, &dbo.Track{
+		Title:    req.Title,
+		Artist:   req.Artist,
+		Cover:    imageFile.Filename,
+		Mp3:      mp3File.Filename,
+		Duration: 0,
+	})
+	if err != nil {
+		p.log.Error("failed to save track into database", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+
+	c.JSON(http.StatusCreated, fmt.Sprintf("Uploaded MP3 file to %s and image file to %s", mp3Path, imagePath))
 }
 
 func (p *proc) getTracks(c *gin.Context) {

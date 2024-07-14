@@ -9,6 +9,7 @@ type Track struct {
 	Title     string    `json:"title" db:"title"`
 	Artist    string    `json:"artist" db:"artist"`
 	Cover     string    `json:"cover" db:"cover"`
+	Mp3       string    `json:"mp3" db:"mp3"`
 	Duration  int       `json:"duration" db:"duration"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 }
