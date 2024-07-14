@@ -1,6 +1,6 @@
 package by.eapp.musicroom.data
 
-import by.eapp.musicroom.domain.DispatcherProvider
+import by.eapp.musicroom.domain.repo.DispatcherProvider
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 

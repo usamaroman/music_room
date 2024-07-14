@@ -1,13 +1,21 @@
 package by.eapp.musicroom.di
 
+import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.preferencesDataStoreFile
 import by.eapp.musicroom.data.DispatcherProviderImpl
-import by.eapp.musicroom.data.StatusRepo
-import by.eapp.musicroom.domain.DispatcherProvider
-import by.eapp.musicroom.domain.repo.StatusRepository
-import by.eapp.musicroom.network.RegistrationService
+import by.eapp.musicroom.data.login.JwtTokenStorage
+import by.eapp.musicroom.domain.repo.DispatcherProvider
+import by.eapp.musicroom.domain.repo.login.JwtTokenManager
+import by.eapp.musicroom.network.ApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -45,19 +53,34 @@ object AppModule {
     @Provides
     fun provideBaseUrl(): String = "https://localhost:8080/"
 
-    @Provides
-    @Singleton
-    fun provideApiService(retrofit: Retrofit): RegistrationService =
-        retrofit.create(RegistrationService::class.java)
 
     @Singleton
     @Provides
-    fun provideStatusRepository(registrationService: RegistrationService): StatusRepository {
-        return StatusRepo(registrationService)
-    }
+    fun provideApiService(retrofit: Retrofit): ApiService = retrofit.create(ApiService::class.java)
+
 
     @Provides
     @Singleton
     fun provideDispatcherProvider(): DispatcherProvider = DispatcherProviderImpl()
 
+    @Provides
+    @Singleton
+    fun provideDataStore(
+        @ApplicationContext appContext: Context,
+    ): DataStore<Preferences> {
+        return PreferenceDataStoreFactory.create(
+            corruptionHandler = ReplaceFileCorruptionHandler(
+                produceNewData = { emptyPreferences() }
+            ),
+            produceFile = { appContext.preferencesDataStoreFile("auth_datastore") }
+        )
+    }
+
+
+    @Provides
+    @Singleton
+    fun provideJwtTokenManager(dataStore: DataStore<Preferences>):
+            JwtTokenManager = JwtTokenStorage(dataStore)
+
 }
+

@@ -1,4 +1,4 @@
-package by.eapp.musicroom.domain
+package by.eapp.musicroom.domain.repo
 
 import kotlinx.coroutines.CoroutineDispatcher
 
