@@ -6,6 +6,8 @@ import (
 	"github.com/usamaroman/music_room/backend/internal/storage/dbo"
 	"github.com/usamaroman/music_room/backend/pkg/postgresql"
 
+	"github.com/georgysavva/scany/v2/pgxscan"
+	_ "github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )
 
@@ -84,27 +86,27 @@ func (repo *Users) ExistsBYNickname(ctx context.Context, nickname string) (bool,
 }
 
 func (repo *Users) ByID(ctx context.Context, id int) (*dbo.User, error) {
-	q := `select id, email, nickname, password, avatar, is_active, created_at from users where id = $1`
+	q := `select * from users where id = $1`
 
-	var user dbo.User
-	if err := repo.qb.Pool().QueryRow(ctx, q, id).Scan(&user.ID, &user.Email, &user.Nickname, &user.Password, &user.Avatar, &user.IsActive, &user.CreatedAt); err != nil {
+	var users []dbo.User
+	if err := pgxscan.Select(ctx, repo.qb.Pool(), &users, q, id); err != nil {
 		repo.log.Error("failed to get user from database", zap.Int("id", id), zap.Error(err))
 		return nil, err
 	}
 
-	return &user, nil
+	return &users[0], nil
 }
 
 func (repo *Users) ByEmail(ctx context.Context, email string) (*dbo.User, error) {
-	q := `select id, email, nickname, password, avatar, is_active, created_at from users where email = $1`
+	q := `select * from users where email = $1`
 
-	var user dbo.User
-	if err := repo.qb.Pool().QueryRow(ctx, q, email).Scan(&user.ID, &user.Email, &user.Nickname, &user.Password, &user.Avatar, &user.IsActive, &user.CreatedAt); err != nil {
+	var users []dbo.User
+	if err := pgxscan.Select(ctx, repo.qb.Pool(), &users, q, email); err != nil {
 		repo.log.Error("failed to get user from database", zap.String("email", email), zap.Error(err))
 		return nil, err
 	}
 
-	return &user, nil
+	return &users[0], nil
 }
 
 func (repo *Users) SetActive(ctx context.Context, id int) error {
