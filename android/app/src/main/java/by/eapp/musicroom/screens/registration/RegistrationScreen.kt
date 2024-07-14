@@ -1,4 +1,5 @@
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -32,11 +34,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.Visibility
-import by.eapp.musicroom.screens.login.LogInButton
-import by.eapp.musicroom.screens.login.TextInputField
+import androidx.navigation.NavHostController
+import by.eapp.musicroom.screens.components.LogInButton
+import by.eapp.musicroom.screens.components.PasswordTextInputField
+import by.eapp.musicroom.screens.components.TextInputField
+
 
 @Composable
-fun RegistrationScreen() {
+fun RegistrationScreen(
+    navController: NavHostController
+) {
     var nickname by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
 
@@ -71,7 +78,7 @@ fun RegistrationScreen() {
             onValueChange = { nickname = it },
             placeholderText = "nastix123",
         )
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(20.dp))
         Text(
             text = "Email",
             modifier = Modifier.padding(bottom = 5.dp),
@@ -83,7 +90,7 @@ fun RegistrationScreen() {
             placeholderText = "anastasizzzs10@gmail.com"
         )
         //passwords
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(20.dp))
         Text(
             text = "Password",
             modifier = Modifier.padding(bottom = 5.dp),
@@ -114,44 +121,20 @@ fun RegistrationScreen() {
             enabled = true,
             onClick = {}
         )
+
+        Spacer(modifier = Modifier.height(40.dp))
+        Text(text = "Already have an account?", color = Color.White)
+        Text(
+            text = "Sign Up",
+            modifier = Modifier
+                .padding(5.dp)
+                .clickable { navController.navigate("login")
+                           },
+            color = Color.White
+        )
     }
 }
 
-@Composable
-fun PasswordTextInputField(
-    password: String,
-    onPasswordChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    label: String = "Password",
-    placeholder: String = "Type password here",
-    showPasswordIcon: ImageVector = Icons.Filled.Visibility,
-    hidePasswordIcon: ImageVector = Icons.Filled.VisibilityOff,
-    showPassword: Boolean,
-    onShowPasswordChange: (Boolean) -> Unit
-) {
-    OutlinedTextField(
-        modifier = modifier.fillMaxWidth(),
-        value = password,
-        onValueChange = onPasswordChange,
-        label = { Text(text = label) },
-        placeholder = { Text(text = placeholder) },
-        shape = RoundedCornerShape(percent = 20),
-        visualTransformation = if (showPassword) {
-            VisualTransformation.None
-        } else {
-            PasswordVisualTransformation()
-        },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-        trailingIcon = {
-            IconButton(onClick = { onShowPasswordChange(!showPassword) }) {
-                Icon(
-                    imageVector = if (showPassword) showPasswordIcon else hidePasswordIcon,
-                    contentDescription = if (showPassword) "Hide password" else "Show password"
-                )
-            }
-        }
-    )
-}
 
 @Preview(showBackground = true)
 @Composable
@@ -171,5 +154,5 @@ fun PasswordTextInputFieldPreview() {
 @Preview
 @Composable
 fun RegistrationScreenPreview() {
-    RegistrationScreen()
+    RegistrationScreen(navController = NavHostController(context = LocalContext.current))
 }
