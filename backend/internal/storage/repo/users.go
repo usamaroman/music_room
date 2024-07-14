@@ -7,6 +7,7 @@ import (
 	"github.com/usamaroman/music_room/backend/pkg/postgresql"
 
 	"github.com/georgysavva/scany/v2/pgxscan"
+	"github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )
@@ -91,7 +92,12 @@ func (repo *Users) ByID(ctx context.Context, id int) (*dbo.User, error) {
 	var users []dbo.User
 	if err := pgxscan.Select(ctx, repo.qb.Pool(), &users, q, id); err != nil {
 		repo.log.Error("failed to get user from database", zap.Int("id", id), zap.Error(err))
+
 		return nil, err
+	}
+
+	if len(users) == 0 {
+		return nil, pgx.ErrNoRows
 	}
 
 	return &users[0], nil
@@ -103,7 +109,12 @@ func (repo *Users) ByEmail(ctx context.Context, email string) (*dbo.User, error)
 	var users []dbo.User
 	if err := pgxscan.Select(ctx, repo.qb.Pool(), &users, q, email); err != nil {
 		repo.log.Error("failed to get user from database", zap.String("email", email), zap.Error(err))
+
 		return nil, err
+	}
+
+	if len(users) == 0 {
+		return nil, pgx.ErrNoRows
 	}
 
 	return &users[0], nil

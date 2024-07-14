@@ -70,12 +70,16 @@ func (p *proc) RegisterRoutes() {
 	})
 
 	apiGroup := p.router.Group("/auth")
-
 	apiGroup.POST("/registration", p.registration)
 	apiGroup.POST("/login", p.login)
 	apiGroup.POST("/code/:userID", p.verificationCode)
 	apiGroup.POST("/submit", p.submitCode)
 	apiGroup.POST("/refresh", p.refreshToken)
+
+	tracksGroup := p.router.Group("/tracks")
+	tracksGroup.POST("", p.createTrack)
+	tracksGroup.GET("", p.getTracks)
+	tracksGroup.GET("/:trackID", p.getTrack)
 }
 
 func (p *proc) registration(c *gin.Context) {
@@ -402,6 +406,14 @@ func (p *proc) refreshToken(c *gin.Context) {
 
 	user, err := p.storage.Users().ByID(c, int(id))
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"err": "user does not exist",
+			})
+
+			return
+		}
+
 		p.log.Error("failed to get user", zap.Int("id", int(id)), zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"err": err.Error(),
@@ -434,4 +446,91 @@ func (p *proc) refreshToken(c *gin.Context) {
 		"access_token":  accessToken,
 		"refresh_token": refreshToken,
 	})
+}
+
+func (p *proc) createTrack(c *gin.Context) {
+	var req request.Track
+
+	if err := c.ShouldBind(&req); err != nil {
+		p.log.Error("failed to bind request", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+
+	mp3File, err := c.FormFile("track")
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get mp3 file err: %s", err.Error()))
+		return
+	}
+	mp3Path := fmt.Sprintf("./uploads/%s", mp3File.Filename)
+	if err := c.SaveUploadedFile(mp3File, mp3Path); err != nil {
+		c.String(http.StatusInternalServerError, fmt.Sprintf("save mp3 file err: %s", err.Error()))
+		return
+	}
+
+	imageFile, err := c.FormFile("image")
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get image file err: %s", err.Error()))
+		return
+	}
+	imagePath := fmt.Sprintf("./uploads/%s", imageFile.Filename)
+	if err := c.SaveUploadedFile(imageFile, imagePath); err != nil {
+		c.String(http.StatusInternalServerError, fmt.Sprintf("save image file err: %s", err.Error()))
+		return
+	}
+
+	c.String(http.StatusOK, fmt.Sprintf("Uploaded MP3 file to %s and image file to %s", mp3Path, imagePath))
+}
+
+func (p *proc) getTracks(c *gin.Context) {
+	tracks, err := p.storage.Tracks().GetAll(c)
+	if err != nil {
+		p.log.Error("failed to get all tracks", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"tracks": tracks,
+	})
+}
+
+func (p *proc) getTrack(c *gin.Context) {
+	id := c.Param("trackID")
+
+	trackID, err := strconv.Atoi(id)
+	if err != nil {
+		p.log.Error("failed to convert string to int", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+
+	track, err := p.storage.Tracks().ByID(c, trackID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"err": "track does not exist",
+			})
+
+			return
+		}
+
+		p.log.Error("failed to get tracks", zap.Int("track id", trackID), zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"err": err.Error(),
+		})
+
+		return
+	}
+
+	c.JSON(http.StatusOK, track)
 }
