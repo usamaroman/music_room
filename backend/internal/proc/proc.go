@@ -28,6 +28,7 @@ import (
 
 type Collections interface {
 	Users() *repo.Users
+	Tracks() *repo.Tracks
 }
 
 type Cache interface {
