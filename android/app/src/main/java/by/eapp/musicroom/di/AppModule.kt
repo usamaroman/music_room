@@ -1,6 +1,8 @@
 package by.eapp.musicroom.di
 
+import by.eapp.musicroom.data.DispatcherProviderImpl
 import by.eapp.musicroom.data.StatusRepo
+import by.eapp.musicroom.domain.DispatcherProvider
 import by.eapp.musicroom.domain.repo.StatusRepository
 import by.eapp.musicroom.network.RegistrationService
 import dagger.Module
@@ -12,7 +14,6 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
-
 
 
 @Module
@@ -46,12 +47,17 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideApiService(retrofit: Retrofit): RegistrationService = retrofit.create(RegistrationService::class.java)
+    fun provideApiService(retrofit: Retrofit): RegistrationService =
+        retrofit.create(RegistrationService::class.java)
 
     @Singleton
     @Provides
     fun provideStatusRepository(registrationService: RegistrationService): StatusRepository {
         return StatusRepo(registrationService)
     }
+
+    @Provides
+    @Singleton
+    fun provideDispatcherProvider(): DispatcherProvider = DispatcherProviderImpl()
 
 }
