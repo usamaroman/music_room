@@ -28,6 +28,12 @@ type Config struct {
 		Email    string `yaml:"email" env:"SMTP_EMAIL" env-default:"testcarbookingservice@gmail.com"`
 		Password string `yaml:"password" env:"SMTP_PASSWORD" env-default:"dykp brpi kneo lrsh"`
 	} `yaml:"smtp"`
+	Minio struct {
+		Host     string `yaml:"host" env:"MINIO_HOST" env-default:"localhost"`
+		Port     string `yaml:"port" env:"MINIO_PORT" env-default:"9000"`
+		User     string `yaml:"user" env:"MINIO_USER" env-default:"minio"`
+		Password string `yaml:"password" env:"MINIO_PASSWORD" env-default:"minio123"`
+	} `yaml:"minio"`
 }
 
 func New(log *zap.Logger) (*Config, error) {
