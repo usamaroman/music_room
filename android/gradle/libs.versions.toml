@@ -1,7 +1,9 @@
 [versions]
+accompanistNavigationAnimation = "0.28.0"
 agp = "8.5.0"
 converterGson = "2.9.0"
 converterGsonVersion = "2.5.0"
+datastorePreferencesCore = "1.1.1"
 hiltAndroid = "2.49"
 hiltAndroidCompiler = "2.49"
 hiltCompiler = "1.2.0"
@@ -22,7 +24,10 @@ retrofit = "2.9.0"
 workRuntimeKtx = "2.9.0"
 
 [libraries]
+accompanist-navigation-animation = { module = "com.google.accompanist:accompanist-navigation-animation", version.ref = "accompanistNavigationAnimation" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferencesCore" }
+androidx-datastore-preferences-core = { module = "androidx.datastore:datastore-preferences-core", version.ref = "datastorePreferencesCore" }
 androidx-hilt-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "hiltCompiler" }
 androidx-hilt-work = { module = "androidx.hilt:hilt-work", version.ref = "hiltCompiler" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }

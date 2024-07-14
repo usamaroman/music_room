@@ -88,10 +88,10 @@ dependencies {
     implementation(libs.okhttp3.logging.interceptor)
     implementation (libs.converter.gson.v250)
 
-    val nav_version = "2.7.7"
-
-    implementation("androidx.navigation:navigation-compose:$nav_version")
-    implementation ("com.google.accompanist:accompanist-navigation-animation:0.28.0")
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.accompanist.navigation.animation)
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.datastore.preferences.core)
 }
 
 
