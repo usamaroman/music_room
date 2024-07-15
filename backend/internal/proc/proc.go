@@ -1,9 +1,12 @@
 package proc
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"strconv"
@@ -42,6 +45,7 @@ type Cache interface {
 type S3 interface {
 	SaveMp3(ctx context.Context, filename, filepath string) error
 	SaveImage(ctx context.Context, filename, filepath string) error
+	Cleanup(ctx context.Context, bucketName string)
 }
 
 type proc struct {
@@ -70,6 +74,146 @@ func NewProc(logger *zap.Logger, cfg *config.Config, storage *storage.Collection
 		cache:   redisClient,
 		s3:      minio,
 	}
+}
+
+func (p *proc) FillData() error {
+	requests := []struct {
+		track       request.Track
+		mp3FilePath string
+		imagePath   string
+	}{
+		{
+			track: request.Track{
+				Title:    "A lot",
+				Artist:   "21 savage",
+				Duration: "1:20",
+			},
+			mp3FilePath: "./data/tracks/a lot.mp3",
+			imagePath:   "./data/covers/a lot.jpeg",
+		},
+		{
+			track: request.Track{
+				Title:    "Goosebumps",
+				Artist:   "Travis Scott",
+				Duration: "1:20",
+			},
+			mp3FilePath: "./data/tracks/goose.mp3",
+			imagePath:   "./data/covers/goosebumps.jpg",
+		},
+		{
+			track: request.Track{
+				Title:    "Lucid Dreams",
+				Artist:   "Juice WRLD",
+				Duration: "1:20",
+			},
+			mp3FilePath: "./data/tracks/lucid.mp3",
+			imagePath:   "./data/covers/lucid dreams.jpg",
+		},
+		{
+			track: request.Track{
+				Title:    "Runaway",
+				Artist:   "Kanye West",
+				Duration: "1:20",
+			},
+			mp3FilePath: "./data/tracks/runaway.mp3",
+			imagePath:   "./data/covers/runaway.jfif",
+		},
+	}
+
+	for _, req := range requests {
+
+		mp3File, err := os.Open(req.mp3FilePath)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		defer mp3File.Close()
+
+		imageFile, err := os.Open(req.imagePath)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		defer imageFile.Close()
+
+		body := &bytes.Buffer{}
+		writer := multipart.NewWriter(body)
+
+		mp3Part, err := writer.CreateFormFile("track", req.mp3FilePath)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		_, err = io.Copy(mp3Part, mp3File)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		imagePart, err := writer.CreateFormFile("image", req.imagePath)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		_, err = io.Copy(imagePart, imageFile)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		writer.WriteField("title", req.track.Title)
+		writer.WriteField("artist", req.track.Artist)
+		writer.WriteField("duration", req.track.Duration)
+
+		err = writer.Close()
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		r, err := http.NewRequest("POST", fmt.Sprintf("http://%s:%s/tracks", p.cfg.HTTP.Host, p.cfg.HTTP.Port), body)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		// Set the content type header
+		r.Header.Set("Content-Type", writer.FormDataContentType())
+
+		client := &http.Client{}
+		response, err := client.Do(r)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		defer response.Body.Close()
+
+		// Read the response
+		responseBody, err := io.ReadAll(response.Body)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		// Print the response
+		fmt.Println(string(responseBody))
+	}
+
+	return nil
+}
+
+func (p *proc) Cleanup() error {
+	if err := p.storage.Tracks().Cleanup(context.Background()); err != nil {
+		p.log.Error("failed to cleanup database", zap.Error(err))
+		return err
+	}
+
+	p.s3.Cleanup(context.Background(), minio.CoversBucket)
+	p.s3.Cleanup(context.Background(), minio.TracksBucket)
+
+	return nil
 }
 
 func (p *proc) RegisterRoutes() {
