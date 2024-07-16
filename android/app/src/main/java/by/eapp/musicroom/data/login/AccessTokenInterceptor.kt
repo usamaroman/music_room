@@ -1,4 +1,4 @@
-package by.eapp.musicroom.data
+package by.eapp.musicroom.data.login
 
 import by.eapp.musicroom.domain.repo.login.JwtTokenManager
 import kotlinx.coroutines.CoroutineDispatcher
