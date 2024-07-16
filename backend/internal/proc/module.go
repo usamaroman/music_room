@@ -17,6 +17,11 @@ type HTTPServer interface {
 	RegisterRoutes()
 }
 
+type DataMocker interface {
+	FillData() error
+	Cleanup() error
+}
+
 func New() fx.Option {
 	return fx.Module(
 		moduleName,
@@ -36,6 +41,7 @@ func New() fx.Option {
 			func(lc fx.Lifecycle, p *proc) {
 				lc.Append(procOnStart(p))
 				lc.Append(registerRouter(p))
+				lc.Append(fillData(p))
 			},
 		),
 
@@ -72,6 +78,17 @@ func registerRouter(p HTTPServer) fx.Hook {
 		OnStart: func(_ context.Context) error {
 			p.RegisterRoutes()
 			return nil
+		},
+	}
+}
+
+func fillData(p DataMocker) fx.Hook {
+	return fx.Hook{
+		OnStart: func(_ context.Context) error {
+			return p.FillData()
+		},
+		OnStop: func(_ context.Context) error {
+			return p.Cleanup()
 		},
 	}
 }

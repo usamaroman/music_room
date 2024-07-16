@@ -38,10 +38,6 @@ func NewClient(cfg *config.Config, log *zap.Logger) *Client {
 	}
 }
 
-func (c *Client) Client() *minio.Client {
-	return c.minioClient
-}
-
 func (c *Client) SaveMp3(ctx context.Context, filename, filepath string) error {
 	object, err := c.minioClient.FPutObject(ctx, TracksBucket, filename, filepath, minio.PutObjectOptions{
 		ContentType: "audio/mpeg",
@@ -66,4 +62,29 @@ func (c *Client) SaveImage(ctx context.Context, filename, filepath string) error
 	c.log.Info("saved image file", zap.Int64("size", object.Size))
 
 	return nil
+}
+
+func (c *Client) Cleanup(ctx context.Context, bucketName string) {
+	objectsChan := make(chan minio.ObjectInfo)
+
+	go func() {
+		defer close(objectsChan)
+
+		for obj := range c.minioClient.ListObjects(ctx, bucketName, minio.ListObjectsOptions{}) {
+			if obj.Err != nil {
+				return
+			}
+			objectsChan <- obj
+		}
+	}()
+
+	errChan := c.minioClient.RemoveObjects(ctx, bucketName, objectsChan, minio.RemoveObjectsOptions{})
+
+	for err := range errChan {
+		c.log.Error("failed to remove object from minio", zap.String("object name", err.ObjectName), zap.Error(err.Err))
+
+		return
+	}
+
+	c.log.Info("bucket is cleared", zap.String("bucket name", bucketName))
 }
