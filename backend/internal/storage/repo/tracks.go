@@ -72,3 +72,17 @@ func (repo *Tracks) ByTitle(ctx context.Context, title string) ([]dbo.Track, err
 
 	return tracks, nil
 }
+
+func (repo *Tracks) Cleanup(ctx context.Context) error {
+	q := "DELETE FROM tracks"
+
+	exec, err := repo.qb.Pool().Exec(ctx, q)
+	if err != nil {
+		repo.log.Error("failed to cleanup table", zap.Error(err))
+		return err
+	}
+
+	repo.log.Info("executed", zap.Int64("rows affected", exec.RowsAffected()))
+
+	return nil
+}
