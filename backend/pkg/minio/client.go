@@ -38,10 +38,6 @@ func NewClient(cfg *config.Config, log *zap.Logger) *Client {
 	}
 }
 
-func (c *Client) Client() *minio.Client {
-	return c.minioClient
-}
-
 func (c *Client) SaveMp3(ctx context.Context, filename, filepath string) error {
 	object, err := c.minioClient.FPutObject(ctx, TracksBucket, filename, filepath, minio.PutObjectOptions{
 		ContentType: "audio/mpeg",

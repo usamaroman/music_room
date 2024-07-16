@@ -121,6 +121,8 @@ func (p *proc) FillData() error {
 	}
 
 	for _, req := range requests {
+		body := &bytes.Buffer{}
+		writer := multipart.NewWriter(body)
 
 		mp3File, err := os.Open(req.mp3FilePath)
 		if err != nil {
@@ -135,9 +137,6 @@ func (p *proc) FillData() error {
 			continue
 		}
 		defer imageFile.Close()
-
-		body := &bytes.Buffer{}
-		writer := multipart.NewWriter(body)
 
 		mp3Part, err := writer.CreateFormFile("track", req.mp3FilePath)
 		if err != nil {
@@ -179,7 +178,6 @@ func (p *proc) FillData() error {
 			continue
 		}
 
-		// Set the content type header
 		r.Header.Set("Content-Type", writer.FormDataContentType())
 
 		client := &http.Client{}
@@ -190,14 +188,12 @@ func (p *proc) FillData() error {
 		}
 		defer response.Body.Close()
 
-		// Read the response
 		responseBody, err := io.ReadAll(response.Body)
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
 
-		// Print the response
 		fmt.Println(string(responseBody))
 	}
 
