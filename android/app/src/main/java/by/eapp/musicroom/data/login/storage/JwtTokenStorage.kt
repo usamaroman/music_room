@@ -1,4 +1,4 @@
-package by.eapp.musicroom.data.login
+package by.eapp.musicroom.data.login.storage
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
