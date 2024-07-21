@@ -28,11 +28,10 @@ services:
       /usr/bin/mc alias set myminio http://minio:9000 minio minio123;
       /usr/bin/mc mb myminio/covers;
       /usr/bin/mc mb myminio/tracks;
-      /usr/bin/mc anonymous set public myminio/covers;
-      /usr/bin/mc anonymous set public myminio/tracks;
+      /usr/bin/mc --debug anonymous set public myminio/covers;
+      /usr/bin/mc --debug anonymous set public myminio/tracks;
       exit 0;
       "
-  
 
   postgres:
     container_name: postgres
@@ -45,6 +44,9 @@ services:
       - ./app_pg_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    depends_on:
+      - createbuckets
+      - minio
 
   redis:
     container_name: redis
