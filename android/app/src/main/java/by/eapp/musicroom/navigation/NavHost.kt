@@ -2,17 +2,14 @@ package by.eapp.musicroom.navigation
 
 
 import RegistrationScreen
-import androidx.compose.animation.AnimatedContentScope
-
 import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import by.eapp.musicroom.screens.login.LoginScreen
+import by.eapp.musicroom.screens.view.login.LoginScreen
 
 @Composable
 fun NavHostController(
@@ -50,6 +47,7 @@ fun NavHostController(
             },
 
         ) {
+            //val viewModel = hilAuthorizationViewModel() добавить хилт вм
             LoginScreen(navController = navController)
         }
         composable(route = Screens.MainScreen.route) {

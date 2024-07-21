@@ -37,7 +37,7 @@ class AuthorizationViewModel @Inject constructor(
     }
 
 
-    fun submitCode(submitData: SubmitData) {
+    private fun submitCode(submitData: SubmitData) {
         _stateUi.value = LoginScreenState.Loading
         viewModelScope.launch {
             val token = auth.submitCode(submitData)
@@ -64,8 +64,7 @@ class AuthorizationViewModel @Inject constructor(
         when (action) {
             is LoginScreenAction.LoginUser -> loginUser(action.loginData)
             is LoginScreenAction.RegisterUser -> registerUser(action.registrationData)
-            is LoginScreenAction.Success -> _stateUi.value = LoginScreenState.Success
-            is LoginScreenAction.Error -> _stateUi.value = LoginScreenState.Error(action.error)
+            is LoginScreenAction.SubmitCode -> submitCode(action.submitData)
         }
     }
 
@@ -75,17 +74,10 @@ class AuthorizationViewModel @Inject constructor(
 
 }
 
-sealed interface RegistrationScreenAction {
-    data object Loading : RegistrationScreenAction
-    data object Success : RegistrationScreenAction
-    data class Error(val error: Throwable?) : RegistrationScreenAction
-}
-
 sealed interface LoginScreenAction {
     data class LoginUser(val loginData: LoginData) : LoginScreenAction
     data class RegisterUser(val registrationData: RegistrationData) : LoginScreenAction
-    data object Success : LoginScreenAction
-    data class Error(val error: Throwable?) : LoginScreenAction
+    data class SubmitCode(val submitData: SubmitData) : LoginScreenAction
 }
 
 sealed interface LoginScreenState {
