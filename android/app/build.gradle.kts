@@ -92,6 +92,8 @@ dependencies {
     implementation(libs.accompanist.navigation.animation)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.datastore.preferences.core)
+
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
 }
 
 
