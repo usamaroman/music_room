@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">MusicRoom</string>
+    <string name="mr_sign_in">Sign In</string>
+    <string name="mr_email_placeholder">anastasizzzs10@gmail.com</string>
+    <string name="mr_password">Password</string>
+    <string name="mr_don_t_have_an_account">Don\'t have an account?</string>
+    <string name="mr_sign_up">Sign Up</string>
+    <string name="mr_nickname">Nickname</string>
+    <string name="mr_placeholder_nickname">nastix123</string>
+    <string name="mr_repeat_password">Repeat password</string>
+    <string name="mr_already_have_an_account">Already have an account?</string>
 </resources>
