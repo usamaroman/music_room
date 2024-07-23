@@ -1,11 +1,5 @@
 package by.eapp.musicroom.data.login.repo
 
-import android.util.Log
-import by.eapp.musicroom.domain.model.LoginData
-import by.eapp.musicroom.domain.model.RegistrationData
-import by.eapp.musicroom.domain.model.SubmitData
-import by.eapp.musicroom.domain.model.Tokens
-import by.eapp.musicroom.domain.repo.login.AuthorizationService
 import by.eapp.musicroom.domain.repo.login.JwtTokenManager
 import by.eapp.musicroom.network.model.RefreshTokenDto
 import kotlinx.coroutines.runBlocking
@@ -17,7 +11,7 @@ import javax.inject.Inject
 
 class AuthAuthenticator @Inject constructor(
     private val tokenManager: JwtTokenManager,
-    private val auth: AuthorizationService,
+    private val apiService: RefreshTokenServiceImpl,
 ) : Authenticator {
 
     companion object {
@@ -40,7 +34,7 @@ class AuthAuthenticator @Inject constructor(
                         RefreshTokenDto(
                             it
                         )
-                    }?.let { auth.refreshToken(updatedToken) }
+                    }?.let { apiService.refreshToken(updatedToken) }
                 }
                 newSessionResponse?.let { body ->
                     runBlocking {
@@ -51,39 +45,8 @@ class AuthAuthenticator @Inject constructor(
                 }
             }
             return if (token != null) response.request.newBuilder()
-                .header(HEADER_AUTHORIZATION, "$token")
+                .header(HEADER_AUTHORIZATION, "$TOKEN_TYPE token")
                 .build() else null
         }
     }
-
-    suspend fun registerUser(registrationData: RegistrationData): Int {
-        val result = auth.registerUser(registrationData)
-        Log.d("AuthAuthenticator", "registerUser: $result")
-        return result
-    }
-
-    suspend fun loginUser(loginData: LoginData): Tokens {
-        val result = auth.loginUser(loginData)
-        Log.d("AuthAuthenticator", "access token: ${result.accessToken}")
-        Log.d("AuthAuthenticator", "refresh token: ${result.refreshToken}")
-        return result
-    }
-
-    suspend fun sendCode(userId: Int) {
-        auth.sendCode(userId)
-    }
-
-    suspend fun submitCode(submitData: SubmitData): String {
-        val result = auth.submitCode(submitData)
-        Log.d("AuthAuthenticator", "submitCode: $result")
-        return result
-    }
-
-    suspend fun refreshToken(refreshToken: String): Tokens {
-        val result = auth.refreshToken(refreshToken)
-        Log.d("AuthAuthenticator", "access token: ${result.accessToken}")
-        Log.d("AuthAuthenticator", "refresh token: ${result.refreshToken}")
-        return result
-    }
-
 }
