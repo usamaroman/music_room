@@ -1,60 +1,48 @@
 package by.eapp.musicroom.di
 
-import by.eapp.musicroom.data.DispatcherProviderImpl
-import by.eapp.musicroom.domain.repo.DispatcherProvider
+import by.eapp.musicroom.data.login.repo.AuthAuthenticator
+import by.eapp.musicroom.data.login.repo.AuthorizationServiceImpl
+import by.eapp.musicroom.data.login.repo.RefreshTokenServiceImpl
+import by.eapp.musicroom.domain.repo.login.AuthorizationService
+import by.eapp.musicroom.domain.repo.login.JwtTokenManager
 import by.eapp.musicroom.network.AuthorizationApiService
+import by.eapp.musicroom.network.RefreshTokenApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
-
-@Module
+@Module(includes = [NetworkModule::class])
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    @Provides
-    @Singleton
-    fun provideRetrofit(baseUrl: String, okHttpClient: OkHttpClient): Retrofit = Retrofit.Builder()
-        .baseUrl(baseUrl)
-        .addConverterFactory(GsonConverterFactory.create())
-        .client(okHttpClient)
-        .build()
 
-    @Singleton
-    @Provides
-    fun providesOkHttpClient(httpLoggingInterceptor: HttpLoggingInterceptor): OkHttpClient =
-        OkHttpClient
-            .Builder()
-            .addInterceptor(httpLoggingInterceptor)
-            .build()
+    @[Provides Singleton]
+    fun provideAuthAuthenticator(
+        tokenManager: JwtTokenManager,
+        apiService: RefreshTokenServiceImpl,
+    ): AuthAuthenticator = AuthAuthenticator(
+        tokenManager = tokenManager,
+        apiService = apiService
+    )
 
-    @Singleton
-    @Provides
-    fun providesLoggingInterceptor(): HttpLoggingInterceptor {
-        return HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
-    }
+    @[Provides Singleton]
+    fun provideRefreshTokenService(
+        apiService: RefreshTokenApiService,
+    ) = RefreshTokenServiceImpl(apiService = apiService)
 
-    @Provides
-    fun provideBaseUrl(): String = "https://localhost:8080/"
-
-
-    @Singleton
-    @Provides
-    fun provideApiService(retrofit: Retrofit): AuthorizationApiService =
-        retrofit.create(AuthorizationApiService::class.java)
-
-
-    @Provides
-    @Singleton
-    fun provideDispatcherProvider(): DispatcherProvider = DispatcherProviderImpl()
-
-
+    @[Provides Singleton]
+    fun provideAuthorizationService(
+        tokenManager: JwtTokenManager,
+        apiService: AuthorizationApiService,
+    ): AuthorizationService = AuthorizationServiceImpl(
+        tokenManager = tokenManager,
+        apiService = apiService
+    )
 }
+
+
+
 
 
