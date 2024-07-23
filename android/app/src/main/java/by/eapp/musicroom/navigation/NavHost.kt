@@ -9,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import by.eapp.musicroom.screens.view.login.LoginScreen
 
 @Composable
 fun NavHostController(
@@ -47,8 +46,8 @@ fun NavHostController(
             },
 
         ) {
-            //val viewModel = hilAuthorizationViewModel() добавить хилт вм
-            LoginScreen(navController = navController)
+//            val viewModel = AuthorizationViewModel()
+//            LoginScreen(navController = navController, viewModel = viewModel)
         }
         composable(route = Screens.MainScreen.route) {
             // MainScreen(navController = navController)
