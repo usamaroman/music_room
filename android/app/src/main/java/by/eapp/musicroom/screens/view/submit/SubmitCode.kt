@@ -4,7 +4,9 @@ package by.eapp.musicroom.screens.view.submit
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
@@ -49,9 +51,10 @@ fun SubmitCode(
     ) {
         Text(
             text = stringResource(R.string.mr_submit_code),
-            fontSize = 24.sp,
+            fontSize = 28.sp,
             modifier = Modifier.padding(bottom = 16.dp)
         )
+        Spacer(modifier = Modifier.height(15.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             code.forEachIndexed { index, value ->
                 CodeInputField(
@@ -100,7 +103,7 @@ fun CodeInputField(
     )
 }
 
-@[Preview Composable]
+@[Preview(showBackground = true) Composable]
 fun SubmitCodePreview() {
     SubmitCode()
 }
