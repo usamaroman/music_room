@@ -6,4 +6,5 @@ sealed class Screens(
     data object RegistrationScreen: Screens("registration")
     data object LoginScreen: Screens("login")
     data object MainScreen: Screens("main")
+    data object SubmitCode : Screens("submit_code")
 }

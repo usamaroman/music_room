@@ -1,6 +1,8 @@
 package by.eapp.musicroom.screens
 
+import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import by.eapp.musicroom.data.login.repo.AuthAuthenticator
@@ -8,6 +10,7 @@ import by.eapp.musicroom.domain.model.LoginData
 import by.eapp.musicroom.domain.model.RegistrationData
 import by.eapp.musicroom.domain.model.SubmitData
 import by.eapp.musicroom.domain.repo.login.AuthorizationService
+import dagger.hilt.android.internal.Contexts.getApplication
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -75,7 +78,7 @@ class AuthorizationViewModel @Inject constructor(
             is LoginScreenAction.LoginUser -> loginUser(action.loginData)
             is LoginScreenAction.RegisterUser -> registerUser(action.registrationData)
             is LoginScreenAction.SubmitCode -> submitCode(action.submitData)
-            LoginScreenAction.NavigateToSubmitCode -> TODO()
+            is LoginScreenAction.ShowError -> showToast(action.text, context = action.context)
         }
     }
 
@@ -84,13 +87,38 @@ class AuthorizationViewModel @Inject constructor(
         const val TAG = "AuthorizationViewModel"
     }
 
+    sealed class Effect(private var isHandled: Boolean = false) {
+        fun runIfNotHandled(action: (Effect) -> Unit) {
+            if (!isHandled) {
+                action(this)
+                isHandled = true
+            }
+        }
+
+        class Exit : Effect(false)
+        class None : Effect(true)
+    }
+
+    fun showToast(text: String, context: Context) {
+        Toast.makeText(getApplication(context), text, Toast.LENGTH_SHORT).show()
+    }
+
+    fun enableButton(
+        email: String,
+        password: String,
+        repeatPassword: String,
+        nickname: String,
+    ): Boolean {
+        return (email.isNotEmpty() && password.isNotEmpty() && repeatPassword.isNotEmpty() && nickname.isNotEmpty())
+    }
+
 }
 
 sealed interface LoginScreenAction {
-    data object NavigateToSubmitCode : LoginScreenAction
     data class LoginUser(val loginData: LoginData) : LoginScreenAction
     data class RegisterUser(val registrationData: RegistrationData) : LoginScreenAction
     data class SubmitCode(val submitData: SubmitData) : LoginScreenAction
+    data class ShowError(val text: String, val context: Context) : LoginScreenAction
 }
 
 sealed interface LoginScreenState {
