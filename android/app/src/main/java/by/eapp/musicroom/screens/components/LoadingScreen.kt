@@ -1,23 +1,51 @@
 package by.eapp.musicroom.screens.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import by.eapp.musicroom.R
+import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 
 @Composable
-fun LoadingScreen() {
-    val composition by rememberLottieComposition(
-    )
+fun LoadingScreen(
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxSize().background(color = Color.DarkGray),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        LoadingAnimation()
+    }
 }
 
 @Composable
-fun lottieSpec(
-    animation: AnimationResource,
-): LottieCompositionSpec {
-    val vaSdkResourceProvider = LocalVaResourceProvider.current
-    val animationRemember = remember(animation) {
-        vaSdkResourceProvider.getAnimationPath(animation)
-    }
-    return LottieCompositionSpec.File(animationRemember)
+fun LoadingAnimation() {
+    val composition by rememberLottieComposition(
+        LottieCompositionSpec.RawRes(
+            R.raw.loading_screen_animation
+        )
+    )
+
+    val compositionProgress by animateLottieCompositionAsState(
+        composition,
+        iterations = LottieConstants.IterateForever,
+        isPlaying = true
+    )
+
+    LottieAnimation(
+        composition = composition,
+        progress = compositionProgress,
+    )
 }
