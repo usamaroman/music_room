@@ -11,12 +11,14 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import by.eapp.musicroom.screens.AuthorizationViewModel
+import by.eapp.musicroom.screens.components.LoadingScreen
+import by.eapp.musicroom.screens.view.submit.SubmitCode
 
 @Composable
 fun NavHostController(
     navController: NavHostController,
+     viewModel: AuthorizationViewModel
 ) {
-    val viewModel = AuthorizationViewModel
     NavHost(
         navController = navController,
         startDestination = Screens.RegistrationScreen.route
@@ -49,7 +51,7 @@ fun NavHostController(
             },
 
         ) {
-            RegistrationScreen(navController = navController)
+            RegistrationScreen(navController = navController, viewModel = viewModel)
         }
         composable(
             route = Screens.LoginScreen.route,
@@ -67,8 +69,12 @@ fun NavHostController(
 //            val viewModel = AuthorizationViewModel()
 //            LoginScreen(navController = navController, viewModel = viewModel)
         }
-        composable(route = Screens.MainScreen.route) {
-            // MainScreen(navController = navController)
+
+        composable(route = Screens.SubmitCode.route) {
+            SubmitCode()
+        }
+        composable(route = Screens.LoadingScreen.route) {
+            LoadingScreen()
         }
     }
 }
