@@ -32,6 +32,7 @@ class AuthorizationViewModel @Inject constructor(
         _stateUi.value = LoginScreenState.Loading
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                delay(5000L)
                 val userId = authService.registerUser(registrationData)
                 Log.d(
                     TAG,
