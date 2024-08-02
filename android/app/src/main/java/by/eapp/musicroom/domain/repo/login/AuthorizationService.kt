@@ -10,5 +10,4 @@ interface AuthorizationService {
     suspend fun loginUser(loginData: LoginData): Tokens
     suspend fun sendCode(userId: Int)
     suspend fun submitCode(submitData: SubmitData): String
-    suspend fun refreshToken(refreshToken: String): Tokens
 }

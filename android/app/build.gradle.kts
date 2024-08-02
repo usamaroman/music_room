@@ -72,8 +72,6 @@ dependencies {
 
     implementation(libs.androidx.material.icons.extended)
 
-    implementation (libs.retrofit)
-    implementation (libs.converter.gson)
 
     //hilt
     implementation(libs.hilt.android)
@@ -82,18 +80,30 @@ dependencies {
     implementation(libs.androidx.hilt.work)
 
     implementation (libs.androidx.work.runtime.ktx)
+
+    //retrofit
     implementation (libs.retrofit)
     implementation(platform(libs.okhttp.bom))
     implementation(libs.okhttp3.okhttp)
     implementation(libs.okhttp3.logging.interceptor)
     implementation (libs.converter.gson.v250)
+    implementation(libs.converter.gson)
 
+    //navigation
     implementation(libs.androidx.navigation.compose)
     implementation(libs.accompanist.navigation.animation)
+
+    //jetpack datastore
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.datastore.preferences.core)
 
+    //lifecycle viewModel
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
+
+    //lottie
+    implementation(libs.lottie)
+    implementation(libs.lottie.compose)
+
 }
 
 

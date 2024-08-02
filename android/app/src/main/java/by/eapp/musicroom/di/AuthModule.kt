@@ -20,8 +20,8 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AuthModule {
-    @Provides
-    @Singleton
+
+    @[Provides Singleton]
     fun provideDataStore(
         @ApplicationContext appContext: Context,
     ): DataStore<Preferences> {
@@ -34,9 +34,9 @@ object AuthModule {
     }
 
 
-    @Provides
-    @Singleton
+    @[Provides Singleton]
     fun provideJwtTokenManager(dataStore: DataStore<Preferences>):
             JwtTokenManager = JwtTokenStorage(dataStore)
+
 
 }

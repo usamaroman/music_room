@@ -1,7 +1,6 @@
 package by.eapp.musicroom.network
 
 import by.eapp.musicroom.network.model.LoginDataDto
-import by.eapp.musicroom.network.model.RefreshTokenDto
 import by.eapp.musicroom.network.model.RegistrationDataDto
 import by.eapp.musicroom.network.model.SubmitDataDto
 import by.eapp.musicroom.network.model.TokensDto
@@ -25,8 +24,6 @@ interface AuthorizationApiService {
     @POST(Endpoint.SUBMIT_CODE)
     suspend fun submitCode(@Body userId: SubmitDataDto): Response<String>
 
-    @POST(Endpoint.REFRESH_TOKEN)
-    suspend fun refreshToken(@Body refreshToken: RefreshTokenDto): Response<TokensDto>
 
 }
 
