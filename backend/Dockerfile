@@ -15,5 +15,4 @@ FROM alpine AS runner
 COPY --from=builder /usr/local/bin/service /usr/local/bin/service
 
 WORKDIR /usr/local/bin
-EXPOSE 8080
 CMD [ "service" ]

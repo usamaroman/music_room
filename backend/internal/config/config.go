@@ -8,7 +8,7 @@ import (
 type Config struct {
 	HTTP struct {
 		Port string `yaml:"port" env:"PORT" env-default:"8080"`
-		Host string `yaml:"host" env:"HOST" env-default:"localhost"`
+		Host string `yaml:"host" env:"HOST" env-default:"0.0.0.0"`
 	} `yaml:"http"`
 	Database struct {
 		User       string `yaml:"user" env:"PG_USER" env-default:"postgres"`
