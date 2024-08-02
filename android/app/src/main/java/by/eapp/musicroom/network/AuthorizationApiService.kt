@@ -28,7 +28,7 @@ interface AuthorizationApiService {
 }
 
 object Endpoint {
-    const val REGISTER = "auth/register"
+    const val REGISTER = "auth/registration"
     const val LOGIN = "auth/login"
     const val SEND_CODE = "auth/code/{userId}"
     const val SUBMIT_CODE = "auth/submit"
