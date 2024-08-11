@@ -364,7 +364,7 @@ func (p *proc) login(c *gin.Context) {
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 	if err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
-			c.JSON(http.StatusInternalServerError, gin.H{
+			c.JSON(http.StatusBadRequest, gin.H{
 				"err": "wrong password",
 			})
 
@@ -421,7 +421,7 @@ func (p *proc) verificationCode(c *gin.Context) {
 	user, err := p.storage.Users().ByID(c, userID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			c.JSON(http.StatusInternalServerError, gin.H{
+			c.JSON(http.StatusBadRequest, gin.H{
 				"err": "user does not exist",
 			})
 
@@ -485,7 +485,7 @@ func (p *proc) submitCode(c *gin.Context) {
 	}
 
 	if value != req.Code {
-		c.JSON(http.StatusInternalServerError, gin.H{
+		c.JSON(http.StatusBadRequest, gin.H{
 			"err": "wrong code",
 		})
 
@@ -495,7 +495,7 @@ func (p *proc) submitCode(c *gin.Context) {
 	id, err := strconv.Atoi(req.UserID)
 	if err != nil {
 		p.log.Error("failed to convert int to string", zap.Error(err))
-		c.JSON(http.StatusInternalServerError, gin.H{
+		c.JSON(http.StatusBadRequest, gin.H{
 			"err": err.Error(),
 		})
 
