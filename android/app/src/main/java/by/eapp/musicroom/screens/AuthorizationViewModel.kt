@@ -28,19 +28,24 @@ class AuthorizationViewModel @Inject constructor(
     private val _stateUi = MutableStateFlow<LoginScreenState>(LoginScreenState.Init)
     val stateUi = _stateUi.asStateFlow()
 
+    private val _userId = MutableStateFlow<Int>(0)
+
+
     private fun registerUser(registrationData: RegistrationData) {
         _stateUi.value = LoginScreenState.Loading
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                delay(5000L)
+                delay(1000L)
                 val userId = authService.registerUser(registrationData)
                 Log.d(
                     TAG,
                     "------------email: ${registrationData.email}  ${registrationData.nickname}"
                 )
-                delay(DELAY_TIME)
-                authService.sendCode(userId)
                 Log.d(TAG, "------------userId: $userId ")
+                delay(DELAY_TIME)
+                _userId.value = userId
+                authService.sendCode(userId)
+                _stateUi.value = LoginScreenState.SubmitStart
                 _stateUi.value = LoginScreenState.Success
             } catch (e: Exception) {
                 _stateUi.value = LoginScreenState.Error(e)
@@ -49,12 +54,13 @@ class AuthorizationViewModel @Inject constructor(
     }
 
 
-    private fun submitCode(submitData: SubmitData) {
-        _stateUi.value = LoginScreenState.Loading
+    fun submitCode(code:String) {
+        _stateUi.value = LoginScreenState.SubmitStart
         viewModelScope.launch(Dispatchers.IO) {
-            val token = authService.submitCode(submitData)
+            val token = authService.submitCode(SubmitData(_userId.value, code))
             Log.d(TAG, "------------token: $token ")
             delay(DELAY_TIME)
+            _stateUi.value = LoginScreenState.SubmitComplete
             _stateUi.value = LoginScreenState.Success
         }
     }
@@ -78,7 +84,7 @@ class AuthorizationViewModel @Inject constructor(
         when (action) {
             is LoginScreenAction.LoginUser -> loginUser(action.loginData)
             is LoginScreenAction.RegisterUser -> registerUser(action.registrationData)
-            is LoginScreenAction.SubmitCode -> submitCode(action.submitData)
+            is LoginScreenAction.SubmitCode -> submitCode(action.code)
             is LoginScreenAction.ShowError -> showToast(action.text, context = action.context)
         }
     }
@@ -118,7 +124,7 @@ class AuthorizationViewModel @Inject constructor(
 sealed interface LoginScreenAction {
     data class LoginUser(val loginData: LoginData) : LoginScreenAction
     data class RegisterUser(val registrationData: RegistrationData) : LoginScreenAction
-    data class SubmitCode(val submitData: SubmitData) : LoginScreenAction
+    data class SubmitCode(val code: String) : LoginScreenAction
     data class ShowError(val text: String, val context: Context) : LoginScreenAction
 }
 
@@ -127,4 +133,6 @@ sealed interface LoginScreenState {
     data object Loading : LoginScreenState
     data class Error(val error: Throwable?) : LoginScreenState
     data object Success : LoginScreenState
+    data object SubmitStart : LoginScreenState
+    data object SubmitComplete : LoginScreenState
 }
