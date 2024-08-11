@@ -71,7 +71,7 @@ fun NavHostController(
         }
 
         composable(route = Screens.SubmitCode.route) {
-            SubmitCode()
+            SubmitCode(navController = navController, viewModel = viewModel)
         }
         composable(route = Screens.LoadingScreen.route) {
             LoadingScreen()

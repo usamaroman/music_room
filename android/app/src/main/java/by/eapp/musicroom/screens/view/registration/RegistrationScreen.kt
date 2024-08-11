@@ -33,6 +33,7 @@ import by.eapp.musicroom.screens.components.LoadingScreen
 import by.eapp.musicroom.screens.components.LogInButton
 import by.eapp.musicroom.screens.components.PasswordTextInputField
 import by.eapp.musicroom.screens.components.TextInputField
+import by.eapp.musicroom.screens.view.submit.SubmitCode
 
 @Composable
 fun MainScreen(
@@ -41,6 +42,8 @@ fun MainScreen(
 ) {
     val stateUi by viewModel.stateUi.collectAsState()
     when (stateUi) {
+        LoginScreenState.SubmitStart -> SubmitCode(navController, viewModel)
+        LoginScreenState.SubmitComplete -> MainScreen(navController = navController, viewModel = viewModel)
         LoginScreenState.Init -> LoadingScreen()
         LoginScreenState.Loading -> LoadingScreen()
         LoginScreenState.Success -> RegistrationScreen(navController, viewModel)
