@@ -30,12 +30,15 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import by.eapp.musicroom.R
+import by.eapp.musicroom.domain.model.SubmitData
+import by.eapp.musicroom.screens.AuthorizationViewModel
 
 @Composable
 fun SubmitCode(
-//    navController: NavHostController,
-//    viewModel: AuthorizationViewModel
+    navController: NavHostController,
+    viewModel: AuthorizationViewModel
 ) {
     val codeLength = 4
     val focusRequesters = remember { List(codeLength) { FocusRequester() } }
@@ -66,6 +69,11 @@ fun SubmitCode(
                                 focusRequesters[index + 1].requestFocus()
                             } else if (newValue.isNotEmpty() && index == codeLength - 1) {
                                 focusManager.clearFocus()
+                                val completeCode = code.joinToString("")
+                                if (completeCode.length == codeLength) {
+
+                                    viewModel.submitCode(completeCode)
+                                }
                             }
                         }
                     },
@@ -103,7 +111,8 @@ fun CodeInputField(
     )
 }
 
-@[Preview(showBackground = true) Composable]
-fun SubmitCodePreview() {
-    SubmitCode()
-}
+//
+//@[Preview(showBackground = true) Composable]
+//fun SubmitCodePreview() {
+//    SubmitCode()
+//}
