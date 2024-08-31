@@ -1,5 +1,6 @@
 [versions]
 accompanistNavigationAnimation = "0.28.0"
+androidPlugin = "8.4.0"
 agp = "8.5.0"
 converterGson = "2.9.0"
 converterGsonVersion = "2.5.0"
@@ -23,6 +24,10 @@ okhttpBom = "4.12.0"
 retrofit = "2.9.0"
 workRuntimeKtx = "2.9.0"
 lottie = "6.0.1"
+appcompat = "1.7.0"
+material = "1.12.0"
+buildConfig = "5.3.5"
+detekt = "1.23.6"
 
 [libraries]
 accompanist-navigation-animation = { module = "com.google.accompanist:accompanist-navigation-animation", version.ref = "accompanistNavigationAnimation" }
@@ -62,8 +67,26 @@ retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit
 
 lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "lottie" }
 lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottie" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+
+
+gradle-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+gradle-application = { module = "com.android.tools.build:gradle", version.ref = "agp" }
+gradle-serialx = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }
+gradle-detekt = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+buildConfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildConfig" }
 
+
+[bundles]
+gradle-plugins = [
+    "gradle-kotlin",
+    "gradle-application",
+    "gradle-serialx",
+    "gradle-detekt",
+]
