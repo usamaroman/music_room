@@ -132,14 +132,14 @@ fun PreviewTextInputField() {
     )
 }
 
-@Composable
-@Preview(showBackground = true)
-fun previewLoginScreen() {
-    LoginContent(
-        state = LoginScreenState(
-
-        ),  //
-        onLoginClick = { _, _ -> },
-        onSignUpClick = {}
-    )
-}
+//@Composable
+//@Preview(showBackground = true)
+//fun previewLoginScreen() {
+//    LoginContent(
+//        state = LoginScreenState(
+//
+//        ),  //
+//        onLoginClick = { _, _ -> },
+//        onSignUpClick = {}
+//    )
+//}

@@ -25,7 +25,7 @@ class AuthorizationViewModel @Inject constructor(
     private val auth: AuthAuthenticator,
     private val authService: AuthorizationService,
 ) : ViewModel() {
-    private val _stateUi = MutableStateFlow<LoginScreenState>(LoginScreenState.Init)
+    private val _stateUi = MutableStateFlow<LoginScreenState>(LoginScreenState.Loading)
     val stateUi = _stateUi.asStateFlow()
 
     private val _userId = MutableStateFlow<Int>(0)
