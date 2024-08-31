@@ -20,5 +20,15 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "MusicRoom"
+includeBuild("build-logic")
+
 include(":app")
- 
+include(":authorization")
+include(":core")
+include(":core:storage")
+include(":core:network")
+include(":core:ui")
+include(":core:mvi")
+
+
+
