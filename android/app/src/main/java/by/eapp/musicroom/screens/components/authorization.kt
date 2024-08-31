@@ -57,15 +57,13 @@ fun TextInputField(
 @Composable
 fun LogInButton(
     modifier: Modifier = Modifier,
-    enabled: Boolean = false,
     onClick:() -> Unit,
 ) {
     ElevatedButton(
         onClick = onClick,
-        enabled = enabled,
         shape = RoundedCornerShape(20),
         colors = ButtonDefaults.elevatedButtonColors(
-            containerColor = if (enabled) Color.White else Color.LightGray,
+            containerColor = Color.White,
             contentColor = Color.Black
         ),
         modifier = modifier

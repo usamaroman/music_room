@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -16,7 +17,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -29,11 +29,9 @@ import by.eapp.musicroom.navigation.Screens
 import by.eapp.musicroom.screens.AuthorizationViewModel
 import by.eapp.musicroom.screens.LoginScreenAction
 import by.eapp.musicroom.screens.LoginScreenState
-import by.eapp.musicroom.screens.components.LoadingScreen
 import by.eapp.musicroom.screens.components.LogInButton
 import by.eapp.musicroom.screens.components.PasswordTextInputField
 import by.eapp.musicroom.screens.components.TextInputField
-import by.eapp.musicroom.screens.view.submit.SubmitCode
 
 @Composable
 fun MainScreen(
@@ -41,17 +39,40 @@ fun MainScreen(
     viewModel: AuthorizationViewModel,
 ) {
     val stateUi by viewModel.stateUi.collectAsState()
-    when (stateUi) {
-        LoginScreenState.SubmitStart -> SubmitCode(navController, viewModel)
-        LoginScreenState.SubmitComplete -> MainScreen(navController = navController, viewModel = viewModel)
-        LoginScreenState.Init -> LoadingScreen()
-        LoginScreenState.Loading -> LoadingScreen()
-        LoginScreenState.Success -> RegistrationScreen(navController, viewModel)
-        is LoginScreenState.Error -> {
-            viewModel.showToast(
-                "Error: ${(stateUi as LoginScreenState.Error).error?.message}",
-                LocalContext.current
-            )
+
+
+    LaunchedEffect(stateUi) {
+        when (stateUi) {
+            LoginScreenState.SubmitStart -> {
+                navController.navigate(Screens.SubmitCode.route) {
+                    popUpTo(Screens.LoadingScreen.route) { inclusive = true }
+                }
+            }
+
+            LoginScreenState.SubmitComplete -> {
+                navController.navigate(Screens.RegistrationScreen.route) {
+                    popUpTo(Screens.LoadingScreen.route) { inclusive = true }
+                }
+            }
+
+            LoginScreenState.Loading -> {
+                navController.navigate(Screens.LoadingScreen.route) {
+                    launchSingleTop = true
+                }
+            }
+
+            LoginScreenState.Success -> {
+                navController.navigate(Screens.RegistrationScreen.route) {
+                    popUpTo(Screens.LoadingScreen.route) { inclusive = true }
+                }
+            }
+
+            is LoginScreenState.Error -> {
+//                viewModel.showToast(
+//                    "Error: ${(stateUi as LoginScreenState.Error).error?.message}",
+//                    LocalContext.current
+//                )
+            }
         }
     }
 }
@@ -62,17 +83,34 @@ fun RegistrationScreen(
     navController: NavHostController,
     viewModel: AuthorizationViewModel,
 ) {
-    var nickname by rememberSaveable { mutableStateOf("") }
-    var email by rememberSaveable { mutableStateOf("") }
-
-    var password by rememberSaveable { mutableStateOf("") }
-    var repeatPassword by rememberSaveable { mutableStateOf("") }
-    var showPassword by rememberSaveable { mutableStateOf(false) }
-    var showRepeatPassword by rememberSaveable { mutableStateOf(false) }
-
     val state by viewModel.stateUi.collectAsState()
 
-    val context = LocalContext.current
+    RegistrationContent(
+        onRegisterClick = { nickname, email, password ->
+            viewModel.dispatch(
+                LoginScreenAction.RegisterUser(
+                    RegistrationData(
+                        nickname = nickname,
+                        email = email,
+                        password = password
+                    )
+                )
+            )
+        },
+        onLoginClick = { navController.navigate(Screens.LoginScreen.route) }
+    )
+}
+
+@Composable
+fun RegistrationContent(
+    onRegisterClick: (String, String, String) -> Unit,
+    onLoginClick: () -> Unit
+) {
+    var nickname by rememberSaveable { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
+    var showPassword by rememberSaveable { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -81,111 +119,99 @@ fun RegistrationScreen(
         horizontalAlignment = Alignment.Start,
     ) {
         Spacer(modifier = Modifier.height(70.dp))
-        Text(
-            text = stringResource(R.string.mr_sign_up),
-            fontSize = 50.sp,
-            color = Color.White,
-            fontWeight = FontWeight.Bold
-        )
+        RegistrationHeader()
         Spacer(modifier = Modifier.height(70.dp))
-
-        Text(
-            text = stringResource(R.string.mr_nickname),
-            modifier = Modifier.padding(bottom = 5.dp),
-            color = Color.White
-        )
-        TextInputField(
-            value = nickname,
-            onValueChange = { nickname = it },
-            placeholderText = stringResource(R.string.mr_placeholder_nickname),
-        )
+        NicknameField(nickname = nickname, onNicknameChange = { nickname = it })
         Spacer(modifier = Modifier.height(20.dp))
-        Text(
-            text = "Email",
-            modifier = Modifier.padding(bottom = 5.dp),
-            color = Color.White
-        )
-        TextInputField(
-            value = email,
-            onValueChange = { email = it },
-            placeholderText = stringResource(R.string.mr_email_placeholder),
-        )
-        //passwords
+        EmailField(email = email, onEmailChange = { email = it })
         Spacer(modifier = Modifier.height(20.dp))
-
-        Text(
-            text = "Password",
-            modifier = Modifier.padding(bottom = 5.dp),
-            color = Color.White
-        )
-
-        PasswordTextInputField(
+        PasswordField(
             password = password,
             onPasswordChange = { password = it },
             showPassword = showPassword,
             onShowPasswordChange = { showPassword = it }
         )
-
-        // Repeat password field
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Text(
-            text = stringResource(R.string.mr_repeat_password),
-            modifier = Modifier.padding(bottom = 5.dp),
-            color = Color.White
-        )
-
-        PasswordTextInputField(
-            password = repeatPassword,
-            onPasswordChange = { repeatPassword = it },
-            showPassword = showRepeatPassword,
-            onShowPasswordChange = { showRepeatPassword = it }
-        )
-
         Spacer(modifier = Modifier.height(40.dp))
-
-        LogInButton(
-            enabled = viewModel.enableButton(
-                nickname = nickname,
-                email = email,
-                password = password,
-                repeatPassword = repeatPassword
-            ),
-            onClick = {
-                if (password == repeatPassword) {
-                    viewModel.dispatch(
-                        LoginScreenAction.RegisterUser(
-                            RegistrationData(
-                                nickname = nickname,
-                                email = email,
-                                password = password
-                            )
-                        )
-                    )
-                } else {
-                    viewModel.dispatch(
-                        LoginScreenAction.ShowError(
-                            context.getString(R.string.mr_passwords_dont_match),
-                            context
-                        )
-                    )
-                }
-
-            }
-        )
-
+        LogInButton(onClick = { onRegisterClick(nickname, email, password) })
         Spacer(modifier = Modifier.height(40.dp))
-        Text(text = stringResource(R.string.mr_already_have_an_account), color = Color.White)
-        Text(
-            text = stringResource(R.string.mr_sign_up),
-            modifier = Modifier
-                .padding(5.dp)
-                .clickable {
-                    navController.navigate(Screens.LoginScreen.route)
-                },
-            color = Color.White
-        )
+        AlreadyHaveAccount(onLoginClick)
     }
+}
+
+@Composable
+fun RegistrationHeader() {
+    Text(
+        text = stringResource(R.string.mr_sign_up),
+        fontSize = 50.sp,
+        color = Color.White,
+        fontWeight = FontWeight.Bold
+    )
+}
+
+@Composable
+fun NicknameField(
+    nickname: String,
+    onNicknameChange: (String) -> Unit
+) {
+    Text(
+        text = stringResource(R.string.mr_nickname),
+        modifier = Modifier.padding(bottom = 5.dp),
+        color = Color.White
+    )
+    TextInputField(
+        value = nickname,
+        onValueChange = onNicknameChange,
+        placeholderText = stringResource(R.string.mr_placeholder_nickname),
+    )
+}
+
+@Composable
+fun EmailField(
+    email: String,
+    onEmailChange: (String) -> Unit
+) {
+    Text(
+        text = stringResource(R.string.mr_email),
+        modifier = Modifier.padding(bottom = 5.dp),
+        color = Color.White
+    )
+    TextInputField(
+        value = email,
+        onValueChange = onEmailChange,
+        placeholderText = stringResource(R.string.mr_email_placeholder),
+    )
+}
+
+@Composable
+fun PasswordField(
+    password: String,
+    onPasswordChange: (String) -> Unit,
+    showPassword: Boolean,
+    onShowPasswordChange: (Boolean) -> Unit
+) {
+    Text(
+        text = stringResource(R.string.mr_password),
+        modifier = Modifier.padding(bottom = 5.dp),
+        color = Color.White
+    )
+    PasswordTextInputField(
+        password = password,
+        onPasswordChange = onPasswordChange,
+        showPassword = showPassword,
+        onShowPasswordChange = onShowPasswordChange
+    )
+}
+
+@Composable
+fun AlreadyHaveAccount(onLoginClick: () -> Unit) {
+    Text(text = stringResource(R.string.mr_already_have_an_account), color = Color.White)
+    Text(
+        text = stringResource(R.string.mr_sign_up),
+        modifier = Modifier
+            .padding(5.dp)
+            .clickable { onLoginClick() },
+        color = Color.White
+    )
 }
 
 
@@ -204,8 +230,11 @@ fun PasswordTextInputFieldPreview() {
     )
 }
 
-@Preview
+
 @Composable
+@Preview(showBackground = true)
 fun RegistrationScreenPreview() {
-    // RegistrationScreen(navController = NavHostController(context = LocalContext.current))
+    RegistrationContent(
+        onRegisterClick = { _, _, _ -> }, onLoginClick = {}
+    )
 }

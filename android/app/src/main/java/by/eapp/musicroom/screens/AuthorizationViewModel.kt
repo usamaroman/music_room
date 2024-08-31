@@ -30,40 +30,37 @@ class AuthorizationViewModel @Inject constructor(
 
     private val _userId = MutableStateFlow<Int>(0)
 
-
     private fun registerUser(registrationData: RegistrationData) {
+        Log.d(TAG, "registerUser called with data: $registrationData")
         _stateUi.value = LoginScreenState.Loading
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                delay(1000L)
-                val userId = authService.registerUser(registrationData)
-                Log.d(
-                    TAG,
-                    "------------email: ${registrationData.email}  ${registrationData.nickname}"
-                )
-                Log.d(TAG, "------------userId: $userId ")
                 delay(DELAY_TIME)
+
+                val userId = authService.registerUser(registrationData)
+                Log.d(TAG, "User registered successfully with ID: $userId")
                 _userId.value = userId
+                delay(DELAY_TIME)
                 authService.sendCode(userId)
                 _stateUi.value = LoginScreenState.SubmitStart
-                _stateUi.value = LoginScreenState.Success
             } catch (e: Exception) {
                 _stateUi.value = LoginScreenState.Error(e)
             }
         }
     }
 
-
-    fun submitCode(code:String) {
-        _stateUi.value = LoginScreenState.SubmitStart
+    fun submitCode(code: String) {
+        Log.d(TAG, "submitCode called with code: $code")
         viewModelScope.launch(Dispatchers.IO) {
-            val token = authService.submitCode(SubmitData(_userId.value, code))
-            Log.d(TAG, "------------token: $token ")
-            delay(DELAY_TIME)
-            _stateUi.value = LoginScreenState.SubmitComplete
-            _stateUi.value = LoginScreenState.Success
+            try {
+                val token = authService.submitCode(SubmitData(_userId.value, code))
+                _stateUi.value = LoginScreenState.SubmitComplete
+            } catch (e: Exception) {
+                Log.e(TAG, "Error occurred while submitting code", e)
+            }
         }
     }
+
 
     private fun loginUser(loginData: LoginData) {
         _stateUi.value = LoginScreenState.Loading
@@ -72,7 +69,6 @@ class AuthorizationViewModel @Inject constructor(
                 val tokens = authService.loginUser(loginData)
                 Log.d(TAG, "------------tokens: $tokens ")
                 delay(DELAY_TIME)
-                //refresh
                 _stateUi.value = LoginScreenState.Success
             } catch (e: Exception) {
                 _stateUi.value = LoginScreenState.Error(e)
@@ -129,7 +125,6 @@ sealed interface LoginScreenAction {
 }
 
 sealed interface LoginScreenState {
-    data object Init : LoginScreenState
     data object Loading : LoginScreenState
     data class Error(val error: Throwable?) : LoginScreenState
     data object Success : LoginScreenState

@@ -29,6 +29,7 @@ import by.eapp.musicroom.domain.model.LoginData
 import by.eapp.musicroom.navigation.Screens
 import by.eapp.musicroom.screens.AuthorizationViewModel
 import by.eapp.musicroom.screens.LoginScreenAction
+import by.eapp.musicroom.screens.LoginScreenState
 import by.eapp.musicroom.screens.components.LogInButton
 import by.eapp.musicroom.screens.components.PasswordTextInputField
 import by.eapp.musicroom.screens.components.TextInputField
@@ -38,11 +39,30 @@ fun LoginScreen(
     navController: NavHostController,
     viewModel: AuthorizationViewModel,
 ) {
+    val state by viewModel.stateUi.collectAsState()
+
+    LoginContent(
+        state = state,
+        onLoginClick = { email, password ->
+            viewModel.dispatch(
+                LoginScreenAction.LoginUser(
+                    LoginData(email = email, password = password)
+                )
+            )
+        },
+        onSignUpClick = { navController.navigate(Screens.RegistrationScreen.route) }
+    )
+}
+
+@Composable
+fun LoginContent(
+    state: LoginScreenState,
+    onLoginClick: (String, String) -> Unit,
+    onSignUpClick: () -> Unit
+) {
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
-
-    val state by viewModel.stateUi.collectAsState()
 
     Column(
         modifier = Modifier
@@ -83,30 +103,15 @@ fun LoginScreen(
             onShowPasswordChange = { showPassword = it }
         )
         Spacer(modifier = Modifier.height(40.dp))
-        LogInButton(
-            enabled = true,
-            onClick = {
-                viewModel.dispatch(
-                    LoginScreenAction.LoginUser(
-                        LoginData(
-                            email = email,
-                            password = password
-                        )
-                    )
-                )
-            }
-        )
+        LogInButton(onClick = { onLoginClick(email, password) })
 
         Spacer(modifier = Modifier.height(40.dp))
         Text(text = stringResource(R.string.mr_don_t_have_an_account), color = Color.White)
         Text(
-            text = stringResource(R.string.mr_sign_up), color = Color.White,
-            modifier = Modifier.clickable {
-                navController.navigate(
-                    Screens.RegistrationScreen.route
-                )
-            })
-
+            text = stringResource(R.string.mr_sign_up),
+            color = Color.White,
+            modifier = Modifier.clickable { onSignUpClick() }
+        )
     }
 }
 
@@ -124,5 +129,17 @@ fun PreviewTextInputField() {
         value = "",
         onValueChange = {},
         placeholderText = "placeholder"
+    )
+}
+
+@Composable
+@Preview(showBackground = true)
+fun previewLoginScreen() {
+    LoginContent(
+        state = LoginScreenState(
+
+        ),  //
+        onLoginClick = { _, _ -> },
+        onSignUpClick = {}
     )
 }
