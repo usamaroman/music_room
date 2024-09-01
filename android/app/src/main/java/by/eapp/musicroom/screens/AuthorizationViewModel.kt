@@ -12,6 +12,7 @@ import by.eapp.musicroom.domain.model.SubmitData
 import by.eapp.musicroom.domain.repo.login.AuthorizationService
 import dagger.hilt.android.internal.Contexts.getApplication
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,27 +26,25 @@ class AuthorizationViewModel @Inject constructor(
     private val auth: AuthAuthenticator,
     private val authService: AuthorizationService,
 ) : ViewModel() {
-    private val _stateUi = MutableStateFlow<LoginScreenState>(LoginScreenState.Loading)
+    private val _stateUi = MutableStateFlow<LoginScreenState>(LoginScreenState.StartRegistration)
     val stateUi = _stateUi.asStateFlow()
 
     private val _userId = MutableStateFlow<Int>(0)
 
+    private val registerCeh = CoroutineExceptionHandler { _, exc ->
+        _stateUi.value = LoginScreenState.Error(exc)
+    }
+
     private fun registerUser(registrationData: RegistrationData) {
         Log.d(TAG, "registerUser called with data: $registrationData")
-        _stateUi.value = LoginScreenState.Loading
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                delay(DELAY_TIME)
-
-                val userId = authService.registerUser(registrationData)
-                Log.d(TAG, "User registered successfully with ID: $userId")
-                _userId.value = userId
-                delay(DELAY_TIME)
-                authService.sendCode(userId)
-                _stateUi.value = LoginScreenState.SubmitStart
-            } catch (e: Exception) {
-                _stateUi.value = LoginScreenState.Error(e)
-            }
+        viewModelScope.launch(registerCeh + Dispatchers.IO) {
+            delay(DELAY_TIME)
+            val userId = authService.registerUser(registrationData)
+            _userId.value = userId
+            delay(DELAY_TIME)
+            Log.d(TAG, "registerUser called submit start")
+            _stateUi.value = LoginScreenState.SubmitStart
+            authService.sendCode(userId)
         }
     }
 
@@ -67,7 +66,6 @@ class AuthorizationViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val tokens = authService.loginUser(loginData)
-                Log.d(TAG, "------------tokens: $tokens ")
                 delay(DELAY_TIME)
                 _stateUi.value = LoginScreenState.Success
             } catch (e: Exception) {
@@ -81,7 +79,6 @@ class AuthorizationViewModel @Inject constructor(
             is LoginScreenAction.LoginUser -> loginUser(action.loginData)
             is LoginScreenAction.RegisterUser -> registerUser(action.registrationData)
             is LoginScreenAction.SubmitCode -> submitCode(action.code)
-            is LoginScreenAction.ShowError -> showToast(action.text, context = action.context)
         }
     }
 
@@ -90,30 +87,7 @@ class AuthorizationViewModel @Inject constructor(
         const val TAG = "AuthorizationViewModel"
     }
 
-    sealed class Effect(private var isHandled: Boolean = false) {
-        fun runIfNotHandled(action: (Effect) -> Unit) {
-            if (!isHandled) {
-                action(this)
-                isHandled = true
-            }
-        }
 
-        class Exit : Effect(false)
-        class None : Effect(true)
-    }
-
-    fun showToast(text: String, context: Context) {
-        Toast.makeText(getApplication(context), text, Toast.LENGTH_SHORT).show()
-    }
-
-    fun enableButton(
-        email: String,
-        password: String,
-        repeatPassword: String,
-        nickname: String,
-    ): Boolean {
-        return (email.isNotEmpty() && password.isNotEmpty() && repeatPassword.isNotEmpty() && nickname.isNotEmpty())
-    }
 
 }
 
@@ -121,7 +95,6 @@ sealed interface LoginScreenAction {
     data class LoginUser(val loginData: LoginData) : LoginScreenAction
     data class RegisterUser(val registrationData: RegistrationData) : LoginScreenAction
     data class SubmitCode(val code: String) : LoginScreenAction
-    data class ShowError(val text: String, val context: Context) : LoginScreenAction
 }
 
 sealed interface LoginScreenState {
@@ -130,4 +103,5 @@ sealed interface LoginScreenState {
     data object Success : LoginScreenState
     data object SubmitStart : LoginScreenState
     data object SubmitComplete : LoginScreenState
+    data object StartRegistration: LoginScreenState
 }

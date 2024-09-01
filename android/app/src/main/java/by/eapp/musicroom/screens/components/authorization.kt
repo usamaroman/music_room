@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -49,7 +50,7 @@ fun TextInputField(
         shape = RoundedCornerShape(percent = 20),
         maxLines = 1,
         visualTransformation = VisualTransformation.None,
-        keyboardOptions = KeyboardOptions.Default,
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
         textStyle = TextStyle(color = Color.White)
     )
 }
@@ -57,7 +58,7 @@ fun TextInputField(
 @Composable
 fun LogInButton(
     modifier: Modifier = Modifier,
-    onClick:() -> Unit,
+    onClick: () -> Unit,
 ) {
     ElevatedButton(
         onClick = onClick,
@@ -103,7 +104,10 @@ fun PasswordTextInputField(
         } else {
             PasswordVisualTransformation()
         },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Password,
+            imeAction = ImeAction.Send
+        ),
         trailingIcon = {
             IconButton(onClick = { onShowPasswordChange(!showPassword) }) {
                 Icon(

@@ -32,3 +32,4 @@ include(":core:mvi")
 
 
 
+include(":core:navigation")

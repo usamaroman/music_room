@@ -1,7 +1,7 @@
 package by.eapp.musicroom.navigation
 
 
-import MainScreen
+
 import RegistrationScreen
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -12,6 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import by.eapp.musicroom.screens.AuthorizationViewModel
 import by.eapp.musicroom.screens.components.LoadingScreen
+import by.eapp.musicroom.screens.view.MainScreen
 import by.eapp.musicroom.screens.view.submit.SubmitCode
 
 @Composable
@@ -23,21 +24,12 @@ fun NavHostController(
         navController = navController,
         startDestination = Screens.RegistrationScreen.route
     ) {
-
         composable(
-            route = Screens.MainScreen.route,
-            enterTransition = {
-                slideIntoContainer(
-                    AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(
-                        durationMillis = 500,
-                        easing = LinearOutSlowInEasing
-                    )
-                )
-            }
+            route = Screens.MainScreen.route
         ) {
-            MainScreen(navController = navController, viewModel = viewModel)
+            MainScreen(navController = navController)
         }
+
         composable(
             route = Screens.RegistrationScreen.route,
             enterTransition = {
