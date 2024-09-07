@@ -27,6 +27,9 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 	gomail "gopkg.in/mail.v2"
+	"github.com/go-playground/validator/v10"
+	"github.com/jackc/pgx/v5"
+	"github.com/redis/go-redis/v9"
 )
 
 type Collections interface {
@@ -215,7 +218,7 @@ func (p *proc) RegisterRoutes() {
 	p.router.GET("/status", func(c *gin.Context) {
 		c.String(http.StatusOK, "health\n")
 	})
-
+	
 	apiGroup := p.router.Group("/auth")
 	apiGroup.POST("/registration", p.registration)
 	apiGroup.POST("/login", p.login)
@@ -464,9 +467,9 @@ func (p *proc) submitCode(c *gin.Context) {
 		return
 	}
 
-	value, err := p.cache.Get(c, fmt.Spintf("%d", req.UserID))
+	value, err := p.cache.Get(c, fmt.Sprintf("%d", req.UserID))
 	if err == redis.Nil {
-		p.log.Error("key does not exist", zap.String("key", req.UserID))
+		p.log.Error("key does not exist", zap.Int("key", req.UserID))
 		c.JSON(http.StatusBadRequest, gin.H{
 			"err": "key does not exist",
 		})
