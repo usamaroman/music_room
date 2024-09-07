@@ -23,10 +23,7 @@ import (
 	"github.com/usamaroman/music_room/backend/pkg/utils"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
-	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 	gomail "gopkg.in/mail.v2"
@@ -467,7 +464,7 @@ func (p *proc) submitCode(c *gin.Context) {
 		return
 	}
 
-	value, err := p.cache.Get(c, req.UserID)
+	value, err := p.cache.Get(c, fmt.Spintf("%d", req.UserID))
 	if err == redis.Nil {
 		p.log.Error("key does not exist", zap.String("key", req.UserID))
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -476,7 +473,7 @@ func (p *proc) submitCode(c *gin.Context) {
 
 		return
 	} else if err != nil {
-		p.log.Error("failed to get value", zap.String("key", req.UserID))
+		p.log.Error("failed to get value", zap.Int("key", req.UserID))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"err": err.Error(),
 		})
@@ -492,18 +489,8 @@ func (p *proc) submitCode(c *gin.Context) {
 		return
 	}
 
-	id, err := strconv.Atoi(req.UserID)
-	if err != nil {
-		p.log.Error("failed to convert int to string", zap.Error(err))
-		c.JSON(http.StatusBadRequest, gin.H{
-			"err": err.Error(),
-		})
-
-		return
-	}
-
-	if err = p.storage.Users().SetActive(c, id); err != nil {
-		p.log.Error("failed to update user", zap.Int("id", id), zap.Error(err))
+	if err = p.storage.Users().SetActive(c, req.UserID); err != nil {
+		p.log.Error("failed to update user", zap.Int("id", req.UserID), zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"err": err.Error(),
 		})
