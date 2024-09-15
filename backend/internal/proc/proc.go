@@ -23,13 +23,13 @@ import (
 	"github.com/usamaroman/music_room/backend/pkg/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 	gomail "gopkg.in/mail.v2"
-	"github.com/go-playground/validator/v10"
-	"github.com/jackc/pgx/v5"
-	"github.com/redis/go-redis/v9"
 )
 
 type Collections interface {
@@ -218,7 +218,7 @@ func (p *proc) RegisterRoutes() {
 	p.router.GET("/status", func(c *gin.Context) {
 		c.String(http.StatusOK, "health\n")
 	})
-	
+
 	apiGroup := p.router.Group("/auth")
 	apiGroup.POST("/registration", p.registration)
 	apiGroup.POST("/login", p.login)
@@ -446,7 +446,12 @@ func (p *proc) verificationCode(c *gin.Context) {
 	d := gomail.NewDialer("smtp.gmail.com", 587, p.cfg.SMTP.Email, p.cfg.SMTP.Password)
 
 	if err = d.DialAndSend(m); err != nil {
-		fmt.Println(err)
+		p.log.Error("failed to send email", zap.String("email", user.Email), zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"err": err.Error(),
+		})
+
+		return
 	}
 
 	p.cache.Set(c, strconv.Itoa(userID), code, 60*time.Second)
