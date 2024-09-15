@@ -454,7 +454,6 @@ func (p *proc) verificationCode(c *gin.Context) {
 		return
 	}
 
-
 	p.log.Info("sent email", zap.String("email", user.Email))
 	p.cache.Set(c, strconv.Itoa(userID), code, 60*time.Second)
 
