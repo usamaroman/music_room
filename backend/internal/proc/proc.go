@@ -14,6 +14,7 @@ import (
 
 	"github.com/usamaroman/music_room/backend/internal/config"
 	"github.com/usamaroman/music_room/backend/internal/proc/request"
+	"github.com/usamaroman/music_room/backend/internal/proc/response"
 	"github.com/usamaroman/music_room/backend/internal/storage"
 	"github.com/usamaroman/music_room/backend/internal/storage/dbo"
 	"github.com/usamaroman/music_room/backend/internal/storage/repo"
@@ -21,6 +22,8 @@ import (
 	"github.com/usamaroman/music_room/backend/pkg/minio"
 	rds "github.com/usamaroman/music_room/backend/pkg/redis"
 	"github.com/usamaroman/music_room/backend/pkg/utils"
+	_ "github.com/usamaroman/music_room/backend/docs"
+	
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -30,6 +33,8 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 	gomail "gopkg.in/mail.v2"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 type Collections interface {
@@ -214,6 +219,8 @@ func (p *proc) Cleanup() error {
 
 func (p *proc) RegisterRoutes() {
 	p.log.Info("routes registration")
+	
+	p.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	p.router.GET("/status", func(c *gin.Context) {
 		c.String(http.StatusOK, "health\n")
@@ -232,6 +239,14 @@ func (p *proc) RegisterRoutes() {
 	tracksGroup.GET("/:trackID", p.getTrack)
 }
 
+// @Summary Registration
+// @Description Endpoint for registration users
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param body body request.Registration true "Registration Body"
+// @Success 201 {object} response.Registration
+// @Router /auth/registration [post]
 func (p *proc) registration(c *gin.Context) {
 	var req request.Registration
 
@@ -315,11 +330,19 @@ func (p *proc) registration(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"id": userID,
+	c.JSON(http.StatusCreated, response.Registration{
+		ID: userID,
 	})
 }
 
+// @Summary Login
+// @Description Endpoint for login users
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param body body request.Login true "Login Body"
+// @Success 200 {object} response.Login
+// @Router /auth/login [post]
 func (p *proc) login(c *gin.Context) {
 	var req request.Login
 
@@ -399,12 +422,20 @@ func (p *proc) login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"access_token":  accessToken,
-		"refresh_token": refreshToken,
+	c.JSON(http.StatusOK, response.Login{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
 	})
 }
 
+// @Summary Send code
+// @Description Endpoint for sending code
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param userID path string true "User ID"
+// @Success 204 {object} response.Login
+// @Router /auth/code/{userID} [post]
 func (p *proc) verificationCode(c *gin.Context) {
 	id := c.Param("userID")
 
@@ -460,6 +491,14 @@ func (p *proc) verificationCode(c *gin.Context) {
 	c.JSON(http.StatusNoContent, nil)
 }
 
+// @Summary Submit code
+// @Description Endpoint for submiting code
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param body body request.Submit true "Submit code Body"
+// @Success 200 {object} response.Submit
+// @Router /auth/submit [post]
 func (p *proc) submitCode(c *gin.Context) {
 	var req request.Submit
 
@@ -507,11 +546,19 @@ func (p *proc) submitCode(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"msg": "user registered",
+	c.JSON(http.StatusOK, response.Submit{
+		Msg: "user registered",
 	})
 }
 
+// @Summary Refresh tokens
+// @Description Endpoint for refreshing tokens
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param body body request.Refresh true "Refresh Body"
+// @Success 200 {object} response.Login
+// @Router /auth/refresh [post]
 func (p *proc) refreshToken(c *gin.Context) {
 	var req request.Refresh
 
@@ -585,9 +632,9 @@ func (p *proc) refreshToken(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"access_token":  accessToken,
-		"refresh_token": refreshToken,
+	c.JSON(http.StatusOK, response.Login{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
 	})
 }
 
