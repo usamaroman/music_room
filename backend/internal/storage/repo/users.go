@@ -104,7 +104,7 @@ func (repo *Users) ByID(ctx context.Context, id int) (*dbo.User, error) {
 }
 
 func (repo *Users) ByEmail(ctx context.Context, email string) (*dbo.User, error) {
-	q := `select * from users where email = $1`
+	q := `select * from users where email = $1 and is_active = true`
 
 	var users []dbo.User
 	if err := pgxscan.Select(ctx, repo.qb.Pool(), &users, q, email); err != nil {

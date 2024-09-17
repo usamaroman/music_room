@@ -26,7 +26,7 @@ type Config struct {
 	} `yaml:"redis"`
 	SMTP struct {
 		Email    string `yaml:"email" env:"SMTP_EMAIL" env-default:"testcarbookingservice@gmail.com"`
-		Password string `yaml:"password" env:"SMTP_PASSWORD" env-default:"dykp brpi kneo lrsh"`
+		Password string `yaml:"password" env:"SMTP_PASSWORD" env-default:"jrzt tsom hhqb eowm"`
 	} `yaml:"smtp"`
 	Minio struct {
 		Host     string `yaml:"host" env:"MINIO_HOST" env-default:"localhost"`
