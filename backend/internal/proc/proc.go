@@ -3,6 +3,7 @@ package proc
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"io"
@@ -12,6 +13,7 @@ import (
 	"strconv"
 	"time"
 
+	_ "github.com/usamaroman/music_room/backend/docs"
 	"github.com/usamaroman/music_room/backend/internal/config"
 	"github.com/usamaroman/music_room/backend/internal/proc/request"
 	"github.com/usamaroman/music_room/backend/internal/proc/response"
@@ -22,19 +24,17 @@ import (
 	"github.com/usamaroman/music_room/backend/pkg/minio"
 	rds "github.com/usamaroman/music_room/backend/pkg/redis"
 	"github.com/usamaroman/music_room/backend/pkg/utils"
-	_ "github.com/usamaroman/music_room/backend/docs"
-	
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/redis/go-redis/v9"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 	gomail "gopkg.in/mail.v2"
-	swaggerfiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 type Collections interface {
@@ -475,7 +475,8 @@ func (p *proc) verificationCode(c *gin.Context) {
 	m.SetHeader("Subject", "Verification Code")
 	m.SetBody("text/plain", fmt.Sprintf("code is %d", code))
 	d := gomail.NewDialer("smtp.gmail.com", 587, p.cfg.SMTP.Email, p.cfg.SMTP.Password)
-
+	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+	
 	if err = d.DialAndSend(m); err != nil {
 		p.log.Error("failed to send email", zap.String("email", user.Email), zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{
