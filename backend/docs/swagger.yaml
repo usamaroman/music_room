@@ -1,0 +1,171 @@
+definitions:
+  github_com_usamaroman_music_room_backend_internal_proc_request.Login:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  github_com_usamaroman_music_room_backend_internal_proc_request.Refresh:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
+  github_com_usamaroman_music_room_backend_internal_proc_request.Registration:
+    properties:
+      email:
+        type: string
+      nickname:
+        maxLength: 30
+        type: string
+      password:
+        maxLength: 30
+        minLength: 6
+        type: string
+    required:
+    - email
+    - nickname
+    - password
+    type: object
+  github_com_usamaroman_music_room_backend_internal_proc_request.Submit:
+    properties:
+      code:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  github_com_usamaroman_music_room_backend_internal_proc_response.Login:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  github_com_usamaroman_music_room_backend_internal_proc_response.Registration:
+    properties:
+      id:
+        type: integer
+    type: object
+  github_com_usamaroman_music_room_backend_internal_proc_response.Submit:
+    properties:
+      msg:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /auth/code/{userID}:
+    post:
+      consumes:
+      - application/json
+      description: Endpoint for sending code
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/github_com_usamaroman_music_room_backend_internal_proc_response.Login'
+      summary: Send code
+      tags:
+      - auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Endpoint for login users
+      parameters:
+      - description: Login Body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_usamaroman_music_room_backend_internal_proc_request.Login'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_usamaroman_music_room_backend_internal_proc_response.Login'
+      summary: Login
+      tags:
+      - auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Endpoint for refreshing tokens
+      parameters:
+      - description: Refresh Body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_usamaroman_music_room_backend_internal_proc_request.Refresh'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_usamaroman_music_room_backend_internal_proc_response.Login'
+      summary: Refresh tokens
+      tags:
+      - auth
+  /auth/registration:
+    post:
+      consumes:
+      - application/json
+      description: Endpoint for registration users
+      parameters:
+      - description: Registration Body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_usamaroman_music_room_backend_internal_proc_request.Registration'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_usamaroman_music_room_backend_internal_proc_response.Registration'
+      summary: Registration
+      tags:
+      - auth
+  /auth/submit:
+    post:
+      consumes:
+      - application/json
+      description: Endpoint for submiting code
+      parameters:
+      - description: Submit code Body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_usamaroman_music_room_backend_internal_proc_request.Submit'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_usamaroman_music_room_backend_internal_proc_response.Submit'
+      summary: Submit code
+      tags:
+      - auth
+swagger: "2.0"
