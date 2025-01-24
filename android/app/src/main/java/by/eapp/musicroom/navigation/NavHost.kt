@@ -10,10 +10,10 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import by.eapp.musicroom.screens.AuthorizationViewModel
-import by.eapp.musicroom.screens.components.LoadingScreen
-import by.eapp.musicroom.screens.view.MainScreen
-import by.eapp.musicroom.screens.view.submit.SubmitCode
+import by.eapp.musicroom.screens.auth.AuthorizationViewModel
+import by.eapp.musicroom.screens.auth.viewstate.LoadingScreen
+import by.eapp.musicroom.screens.auth.view.MainScreen
+import by.eapp.musicroom.screens.auth.view.submit.SubmitCode
 
 @Composable
 fun NavHostController(

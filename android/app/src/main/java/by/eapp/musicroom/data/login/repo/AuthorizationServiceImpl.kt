@@ -50,8 +50,9 @@ class AuthorizationServiceImpl @Inject constructor(
     }
 
 
-    override suspend fun sendCode(userId: Int) {
-        apiService.sendCode(userId = userId)
+    override suspend fun sendCode(userId: Int?): Unit {
+        if (userId == null) throw Exception("U send null user id")
+        else apiService.sendCode(userId = userId)
     }
 
     override suspend fun submitCode(submitData: SubmitData): String {

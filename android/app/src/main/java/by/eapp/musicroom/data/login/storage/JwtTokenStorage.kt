@@ -44,7 +44,7 @@ class JwtTokenStorage @Inject constructor(
     }
 
     companion object {
-        val ACCESS_JWT_KEY = stringPreferencesKey("access_jwt")
-        val REFRESH_JWT_KEY = stringPreferencesKey("refresh_jwt")
+        private val ACCESS_JWT_KEY = stringPreferencesKey("access_jwt")
+        private val REFRESH_JWT_KEY = stringPreferencesKey("refresh_jwt")
     }
 }

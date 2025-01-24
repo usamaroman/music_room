@@ -8,6 +8,6 @@ import by.eapp.musicroom.domain.model.Tokens
 interface AuthorizationService {
     suspend fun registerUser(registrationData: RegistrationData): Int
     suspend fun loginUser(loginData: LoginData): Tokens
-    suspend fun sendCode(userId: Int)
+    suspend fun sendCode(userId: Int?): Unit
     suspend fun submitCode(submitData: SubmitData): String
 }

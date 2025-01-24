@@ -31,11 +31,10 @@ class AuthAuthenticator @Inject constructor(
             val token = if (currentToken != updatedToken) updatedToken else {
                 val newSessionResponse = runBlocking {
                     updatedToken?.let {
-                        RefreshTokenDto(
-                            it
-                        )
+                        RefreshTokenDto(it)
                     }?.let { apiService.refreshToken(updatedToken) }
                 }
+
                 newSessionResponse?.let { body ->
                     runBlocking {
                         tokenManager.saveAccessJwt(body.accessToken)

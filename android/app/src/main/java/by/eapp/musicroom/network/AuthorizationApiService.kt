@@ -1,6 +1,7 @@
 package by.eapp.musicroom.network
 
 import by.eapp.musicroom.network.model.LoginDataDto
+import by.eapp.musicroom.network.model.RefreshTokenDto
 import by.eapp.musicroom.network.model.RegistrationDataDto
 import by.eapp.musicroom.network.model.SubmitDataDto
 import by.eapp.musicroom.network.model.TokensDto
@@ -19,11 +20,10 @@ interface AuthorizationApiService {
     suspend fun loginUser(@Body loginData: LoginDataDto): Response<TokensDto>
 
     @POST(Endpoint.SEND_CODE)
-    suspend fun sendCode(@Path("userId") userId: Int)
+    suspend fun sendCode(@Path("userId") userId: Int): Response<Void?>
 
     @POST(Endpoint.SUBMIT_CODE)
     suspend fun submitCode(@Body userId: SubmitDataDto): Response<String>
-
 
 }
 
