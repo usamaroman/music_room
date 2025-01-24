@@ -3,6 +3,7 @@ package proc
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"io"
@@ -12,6 +13,7 @@ import (
 	"strconv"
 	"time"
 
+	_ "github.com/usamaroman/music_room/backend/docs"
 	"github.com/usamaroman/music_room/backend/internal/config"
 	"github.com/usamaroman/music_room/backend/internal/proc/request"
 	"github.com/usamaroman/music_room/backend/internal/proc/response"
@@ -22,19 +24,17 @@ import (
 	"github.com/usamaroman/music_room/backend/pkg/minio"
 	rds "github.com/usamaroman/music_room/backend/pkg/redis"
 	"github.com/usamaroman/music_room/backend/pkg/utils"
-	_ "github.com/usamaroman/music_room/backend/docs"
-	
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/redis/go-redis/v9"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 	gomail "gopkg.in/mail.v2"
-	swaggerfiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 type Collections interface {
@@ -219,7 +219,7 @@ func (p *proc) Cleanup() error {
 
 func (p *proc) RegisterRoutes() {
 	p.log.Info("routes registration")
-	
+
 	p.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	p.router.GET("/status", func(c *gin.Context) {
@@ -475,6 +475,7 @@ func (p *proc) verificationCode(c *gin.Context) {
 	m.SetHeader("Subject", "Verification Code")
 	m.SetBody("text/plain", fmt.Sprintf("code is %d", code))
 	d := gomail.NewDialer("smtp.gmail.com", 587, p.cfg.SMTP.Email, p.cfg.SMTP.Password)
+	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 
 	if err = d.DialAndSend(m); err != nil {
 		p.log.Error("failed to send email", zap.String("email", user.Email), zap.Error(err))
@@ -638,6 +639,17 @@ func (p *proc) refreshToken(c *gin.Context) {
 	})
 }
 
+// @Summary Create a new track
+// @Description Uploads an MP3 file and an image file, saves them to S3, and creates a track record in the database.
+// @Tags Tracks
+// @Accept multipart/form-data
+// @Produce json
+// @Param title formData string true "Title of the track"
+// @Param artist formData string true "Artist of the track"
+// @Param track formData file true "MP3 file of the track"
+// @Param image formData file true "Image file for the track cover"
+// @Success 201 {object} response.CreateTrack "Returns the ID of the created track"
+// @Router /tracks [post]
 func (p *proc) createTrack(c *gin.Context) {
 	var req request.Track
 
@@ -735,11 +747,15 @@ func (p *proc) createTrack(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"track_id": trackID,
-	})
+	c.JSON(http.StatusCreated, response.CreateTrack{ID: trackID})
 }
 
+// @Summary Get all tracks
+// @Description Retrieves a list of all tracks from the database.
+// @Tags Tracks
+// @Produce json
+// @Success 200 {object} []dbo.Track "Array of tracks"
+// @Router /tracks [get]
 func (p *proc) getTracks(c *gin.Context) {
 	tracks, err := p.storage.Tracks().GetAll(c)
 	if err != nil {
@@ -751,11 +767,16 @@ func (p *proc) getTracks(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"tracks": tracks,
-	})
+	c.JSON(http.StatusOK, tracks)
 }
 
+// @Summary Get a track by ID
+// @Description Retrieves a specific track by its ID.
+// @Tags Tracks
+// @Produce json
+// @Param trackID path int true "Track ID"
+// @Success 200 {object} dbo.Track "Returns the track details"
+// @Router /tracks/{trackID} [get]
 func (p *proc) getTrack(c *gin.Context) {
 	id := c.Param("trackID")
 

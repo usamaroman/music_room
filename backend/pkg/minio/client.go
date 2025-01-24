@@ -32,10 +32,35 @@ func NewClient(cfg *config.Config, log *zap.Logger) *Client {
 		return nil
 	}
 
+	if err = createBuckets(context.Background(), minioClient, log); err != nil {
+		log.Error("failed to create buckets in minio", zap.Error(err))
+		return nil
+	}
+
 	return &Client{
 		log:         log,
 		minioClient: minioClient,
 	}
+}
+
+func createBuckets(ctx context.Context, client *minio.Client, log *zap.Logger) error {
+	buckets := []string{CoversBucket, TracksBucket}
+
+	for _, bucket := range buckets {
+		if err := client.MakeBucket(ctx, bucket, minio.MakeBucketOptions{
+			Region: "by",
+		}); err != nil {
+			exists, errBucketExists := client.BucketExists(ctx, bucket)
+			if errBucketExists == nil && exists {
+				log.Debug("bucket already exists", zap.String("bucket", bucket))
+			} else {
+				log.Error("failed to create bucket", zap.String("bucket", bucket))
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func (c *Client) SaveMp3(ctx context.Context, filename, filepath string) error {

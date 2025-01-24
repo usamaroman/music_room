@@ -182,6 +182,109 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/tracks": {
+            "get": {
+                "description": "Retrieves a list of all tracks from the database.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tracks"
+                ],
+                "summary": "Get all tracks",
+                "responses": {
+                    "200": {
+                        "description": "Array of tracks",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_usamaroman_music_room_backend_internal_storage_dbo.Track"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Uploads an MP3 file and an image file, saves them to S3, and creates a track record in the database.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tracks"
+                ],
+                "summary": "Create a new track",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Title of the track",
+                        "name": "title",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Artist of the track",
+                        "name": "artist",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "MP3 file of the track",
+                        "name": "track",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Image file for the track cover",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Returns the ID of the created track",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_usamaroman_music_room_backend_internal_proc_response.CreateTrack"
+                        }
+                    }
+                }
+            }
+        },
+        "/tracks/{trackID}": {
+            "get": {
+                "description": "Retrieves a specific track by its ID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tracks"
+                ],
+                "summary": "Get a track by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Track ID",
+                        "name": "trackID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns the track details",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_usamaroman_music_room_backend_internal_storage_dbo.Track"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -244,6 +347,14 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_usamaroman_music_room_backend_internal_proc_response.CreateTrack": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
         "github_com_usamaroman_music_room_backend_internal_proc_response.Login": {
             "type": "object",
             "properties": {
@@ -267,6 +378,32 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "msg": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_usamaroman_music_room_backend_internal_storage_dbo.Track": {
+            "type": "object",
+            "properties": {
+                "artist": {
+                    "type": "string"
+                },
+                "cover": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "duration": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "mp3": {
+                    "type": "string"
+                },
+                "title": {
                     "type": "string"
                 }
             }

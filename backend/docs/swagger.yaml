@@ -39,6 +39,11 @@ definitions:
       user_id:
         type: integer
     type: object
+  github_com_usamaroman_music_room_backend_internal_proc_response.CreateTrack:
+    properties:
+      id:
+        type: integer
+    type: object
   github_com_usamaroman_music_room_backend_internal_proc_response.Login:
     properties:
       access_token:
@@ -54,6 +59,23 @@ definitions:
   github_com_usamaroman_music_room_backend_internal_proc_response.Submit:
     properties:
       msg:
+        type: string
+    type: object
+  github_com_usamaroman_music_room_backend_internal_storage_dbo.Track:
+    properties:
+      artist:
+        type: string
+      cover:
+        type: string
+      created_at:
+        type: string
+      duration:
+        type: integer
+      id:
+        type: integer
+      mp3:
+        type: string
+      title:
         type: string
     type: object
 info:
@@ -168,4 +190,74 @@ paths:
       summary: Submit code
       tags:
       - auth
+  /tracks:
+    get:
+      description: Retrieves a list of all tracks from the database.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Array of tracks
+          schema:
+            items:
+              $ref: '#/definitions/github_com_usamaroman_music_room_backend_internal_storage_dbo.Track'
+            type: array
+      summary: Get all tracks
+      tags:
+      - Tracks
+    post:
+      consumes:
+      - multipart/form-data
+      description: Uploads an MP3 file and an image file, saves them to S3, and creates
+        a track record in the database.
+      parameters:
+      - description: Title of the track
+        in: formData
+        name: title
+        required: true
+        type: string
+      - description: Artist of the track
+        in: formData
+        name: artist
+        required: true
+        type: string
+      - description: MP3 file of the track
+        in: formData
+        name: track
+        required: true
+        type: file
+      - description: Image file for the track cover
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Returns the ID of the created track
+          schema:
+            $ref: '#/definitions/github_com_usamaroman_music_room_backend_internal_proc_response.CreateTrack'
+      summary: Create a new track
+      tags:
+      - Tracks
+  /tracks/{trackID}:
+    get:
+      description: Retrieves a specific track by its ID.
+      parameters:
+      - description: Track ID
+        in: path
+        name: trackID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns the track details
+          schema:
+            $ref: '#/definitions/github_com_usamaroman_music_room_backend_internal_storage_dbo.Track'
+      summary: Get a track by ID
+      tags:
+      - Tracks
 swagger: "2.0"
