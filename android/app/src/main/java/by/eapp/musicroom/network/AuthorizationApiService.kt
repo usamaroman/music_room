@@ -1,11 +1,10 @@
 package by.eapp.musicroom.network
 
-import by.eapp.musicroom.network.model.LoginDataDto
-import by.eapp.musicroom.network.model.RefreshTokenDto
-import by.eapp.musicroom.network.model.RegistrationDataDto
-import by.eapp.musicroom.network.model.SubmitDataDto
-import by.eapp.musicroom.network.model.TokensDto
-import by.eapp.musicroom.network.model.UserIdDto
+import by.eapp.musicroom.network.model.auth.LoginDataDto
+import by.eapp.musicroom.network.model.auth.RegistrationDataDto
+import by.eapp.musicroom.network.model.auth.SubmitDataDto
+import by.eapp.musicroom.network.model.auth.TokensDto
+import by.eapp.musicroom.network.model.auth.UserIdDto
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST

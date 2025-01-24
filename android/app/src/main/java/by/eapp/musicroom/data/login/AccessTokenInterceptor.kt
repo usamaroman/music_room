@@ -1,6 +1,6 @@
 package by.eapp.musicroom.data.login
 
-import by.eapp.musicroom.domain.repo.login.JwtTokenManager
+import by.eapp.musicroom.domain.repo.auth.login.JwtTokenManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking

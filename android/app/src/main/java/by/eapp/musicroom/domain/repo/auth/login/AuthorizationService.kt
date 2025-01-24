@@ -1,9 +1,9 @@
-package by.eapp.musicroom.domain.repo.login
+package by.eapp.musicroom.domain.repo.auth.login
 
-import by.eapp.musicroom.domain.model.LoginData
-import by.eapp.musicroom.domain.model.RegistrationData
-import by.eapp.musicroom.domain.model.SubmitData
-import by.eapp.musicroom.domain.model.Tokens
+import by.eapp.musicroom.domain.model.auth.LoginData
+import by.eapp.musicroom.domain.model.auth.RegistrationData
+import by.eapp.musicroom.domain.model.auth.SubmitData
+import by.eapp.musicroom.domain.model.auth.Tokens
 
 interface AuthorizationService {
     suspend fun registerUser(registrationData: RegistrationData): Int

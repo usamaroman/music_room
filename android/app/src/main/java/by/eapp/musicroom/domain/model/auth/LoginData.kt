@@ -1,4 +1,4 @@
-package by.eapp.musicroom.domain.model
+package by.eapp.musicroom.domain.model.auth
 
 data class LoginData(
     val email: String,

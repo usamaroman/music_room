@@ -3,8 +3,8 @@ package by.eapp.musicroom.di
 import by.eapp.musicroom.data.login.repo.AuthAuthenticator
 import by.eapp.musicroom.data.login.repo.AuthorizationServiceImpl
 import by.eapp.musicroom.data.login.repo.RefreshTokenServiceImpl
-import by.eapp.musicroom.domain.repo.login.AuthorizationService
-import by.eapp.musicroom.domain.repo.login.JwtTokenManager
+import by.eapp.musicroom.domain.repo.auth.login.AuthorizationService
+import by.eapp.musicroom.domain.repo.auth.login.JwtTokenManager
 import by.eapp.musicroom.network.AuthorizationApiService
 import by.eapp.musicroom.network.RefreshTokenApiService
 import dagger.Module

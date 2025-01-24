@@ -1,7 +1,6 @@
 package by.eapp.musicroom.screens.auth.view.submit
 
 
-import HandleNavigation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +15,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,6 +38,7 @@ import by.eapp.musicroom.R
 import by.eapp.musicroom.screens.auth.AuthorizationViewModel
 import by.eapp.musicroom.screens.auth.LoginScreenAction
 import by.eapp.musicroom.screens.auth.LoginScreenState
+import handleNavigation
 
 @Composable
 fun SubmitCode(
@@ -46,12 +47,11 @@ fun SubmitCode(
 ) {
     val state by viewModel.stateUi.collectAsState()
     SubmitCodeContent(
-        onSubmit = { code -> viewModel.dispatch(LoginScreenAction.SubmitCode(code))},
+        onSubmit = { code -> viewModel.dispatch(LoginScreenAction.SubmitCode(code)) },
         state = state,
         navController = navController
     )
 }
-
 
 
 @Composable
@@ -65,7 +65,9 @@ fun SubmitCodeContent(
     var code by remember { mutableStateOf(List(codeLength) { "" }) }
     val focusManager = LocalFocusManager.current
 
-
+    LaunchedEffect(state) {
+        handleNavigation(stateUi = state, navController = navController)
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -99,7 +101,7 @@ fun SubmitCodeContent(
                     },
                     focusRequester = focusRequesters[index]
                 )
-                HandleNavigation(stateUi = state, navController = navController)
+
             }
         }
     }

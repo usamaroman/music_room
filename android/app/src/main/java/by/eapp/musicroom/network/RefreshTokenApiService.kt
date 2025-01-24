@@ -1,7 +1,7 @@
 package by.eapp.musicroom.network
 
-import by.eapp.musicroom.network.model.RefreshTokenDto
-import by.eapp.musicroom.network.model.TokensDto
+import by.eapp.musicroom.network.model.auth.RefreshTokenDto
+import by.eapp.musicroom.network.model.auth.TokensDto
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST
