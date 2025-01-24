@@ -219,7 +219,7 @@ func (p *proc) Cleanup() error {
 
 func (p *proc) RegisterRoutes() {
 	p.log.Info("routes registration")
-	
+
 	p.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	p.router.GET("/status", func(c *gin.Context) {
@@ -476,7 +476,7 @@ func (p *proc) verificationCode(c *gin.Context) {
 	m.SetBody("text/plain", fmt.Sprintf("code is %d", code))
 	d := gomail.NewDialer("smtp.gmail.com", 587, p.cfg.SMTP.Email, p.cfg.SMTP.Password)
 	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
-	
+
 	if err = d.DialAndSend(m); err != nil {
 		p.log.Error("failed to send email", zap.String("email", user.Email), zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -639,6 +639,19 @@ func (p *proc) refreshToken(c *gin.Context) {
 	})
 }
 
+// @Summary Create a new track
+// @Description Uploads an MP3 file and an image file, saves them to S3, and creates a track record in the database.
+// @Tags Tracks
+// @Accept multipart/form-data
+// @Produce json
+// @Param title formData string true "Title of the track"
+// @Param artist formData string true "Artist of the track"
+// @Param track formData file true "MP3 file of the track"
+// @Param image formData file true "Image file for the track cover"
+// @Success 201 {object} gin.H "Returns the ID of the created track"
+// @Failure 400 {object} gin.H "Invalid request or missing required fields"
+// @Failure 500 {object} gin.H "Internal server error"
+// @Router /tracks [post]
 func (p *proc) createTrack(c *gin.Context) {
 	var req request.Track
 
@@ -741,6 +754,13 @@ func (p *proc) createTrack(c *gin.Context) {
 	})
 }
 
+// @Summary Get all tracks
+// @Description Retrieves a list of all tracks from the database.
+// @Tags Tracks
+// @Produce json
+// @Success 200 {object} gin.H "Returns a list of tracks"
+// @Failure 500 {object} gin.H "Internal server error"
+// @Router /tracks [get]
 func (p *proc) getTracks(c *gin.Context) {
 	tracks, err := p.storage.Tracks().GetAll(c)
 	if err != nil {
@@ -757,6 +777,15 @@ func (p *proc) getTracks(c *gin.Context) {
 	})
 }
 
+// @Summary Get a track by ID
+// @Description Retrieves a specific track by its ID.
+// @Tags Tracks
+// @Produce json
+// @Param trackID path int true "Track ID"
+// @Success 200 {object} dbo.Track "Returns the track details"
+// @Failure 400 {object} gin.H "Invalid track ID or track does not exist"
+// @Failure 500 {object} gin.H "Internal server error"
+// @Router /tracks/{trackID} [get]
 func (p *proc) getTrack(c *gin.Context) {
 	id := c.Param("trackID")
 
