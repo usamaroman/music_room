@@ -1,4 +1,4 @@
-package by.eapp.musicroom.domain.repo.login
+package by.eapp.musicroom.domain.repo.auth.login
 
 interface JwtTokenManager {
     suspend fun saveAccessJwt(token: String)

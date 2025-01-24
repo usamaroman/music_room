@@ -1,9 +1,9 @@
 package by.eapp.musicroom.data.login.repo
 
-import by.eapp.musicroom.data.toDto
-import by.eapp.musicroom.domain.model.RefreshToken
-import by.eapp.musicroom.domain.model.Tokens
-import by.eapp.musicroom.domain.repo.RefreshTokenService
+import by.eapp.musicroom.data.RegistrationMappers.toDto
+import by.eapp.musicroom.domain.model.auth.RefreshToken
+import by.eapp.musicroom.domain.model.auth.Tokens
+import by.eapp.musicroom.domain.repo.auth.RefreshTokenService
 import by.eapp.musicroom.network.RefreshTokenApiService
 import javax.inject.Inject
 

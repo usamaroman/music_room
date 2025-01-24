@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import by.eapp.musicroom.R
-import by.eapp.musicroom.domain.model.RegistrationData
+import by.eapp.musicroom.domain.model.auth.RegistrationData
 import by.eapp.musicroom.navigation.Screens
 import by.eapp.musicroom.screens.auth.AuthorizationViewModel
 import by.eapp.musicroom.screens.auth.LoginScreenAction
@@ -42,7 +42,12 @@ fun RegistrationScreen(
     viewModel: AuthorizationViewModel,
 ) {
     val stateUi by viewModel.stateUi.collectAsState()
-    HandleNavigation(stateUi, navController)
+
+    LaunchedEffect(stateUi) {
+        handleNavigation(stateUi, navController)
+    }
+
+
     RegistrationContent(
         onRegisterClick = { nickname, email, password ->
             viewModel.dispatch(
@@ -99,25 +104,24 @@ fun RegistrationContent(
     }
 }
 
-@Composable
-fun HandleNavigation(
+
+fun handleNavigation(
     stateUi: LoginScreenState,
     navController: NavController
 ) {
-    LaunchedEffect(stateUi) {
-        Log.d("HandleNavigation", "Current state: $stateUi")
+
         when (stateUi) {
             LoginScreenState.SubmitStart -> {
                 Log.d("HandleNavigation", "Navigating to SubmitCode")
                 navController.navigate(Screens.SubmitCode.route) {
-                    launchSingleTop = true // Не создаём дубликаты в стеке
+                    launchSingleTop = true
                 }
             }
 
             LoginScreenState.SubmitComplete -> {
                 Log.d("HandleNavigation", "Navigating to MainScreen")
                 navController.navigate(Screens.MainScreen.route) {
-                    popUpTo(Screens.RegistrationScreen.route) { inclusive = true } // Возврат на MainScreen, очищаем стек
+                    popUpTo(Screens.RegistrationScreen.route) { inclusive = true }
                 }
             }
 
@@ -142,7 +146,7 @@ fun HandleNavigation(
             LoginScreenState.StartRegistration -> Log.d("HandleNavigation", "StartRegistration")
             else -> {}
         }
-    }
+
 }
 
 

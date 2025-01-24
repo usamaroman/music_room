@@ -1,7 +1,7 @@
 package by.eapp.musicroom.data.login.repo
 
-import by.eapp.musicroom.domain.repo.login.JwtTokenManager
-import by.eapp.musicroom.network.model.RefreshTokenDto
+import by.eapp.musicroom.domain.repo.auth.login.JwtTokenManager
+import by.eapp.musicroom.network.model.auth.RefreshTokenDto
 import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator
 import okhttp3.Request

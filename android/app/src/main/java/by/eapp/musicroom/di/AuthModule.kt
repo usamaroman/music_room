@@ -8,7 +8,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import by.eapp.musicroom.data.login.storage.JwtTokenStorage
-import by.eapp.musicroom.domain.repo.login.JwtTokenManager
+import by.eapp.musicroom.domain.repo.auth.login.JwtTokenManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

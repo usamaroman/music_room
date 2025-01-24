@@ -1,12 +1,12 @@
 package by.eapp.musicroom.data.login.repo
 
-import by.eapp.musicroom.data.toDto
-import by.eapp.musicroom.domain.model.LoginData
-import by.eapp.musicroom.domain.model.RegistrationData
-import by.eapp.musicroom.domain.model.SubmitData
-import by.eapp.musicroom.domain.model.Tokens
-import by.eapp.musicroom.domain.repo.login.AuthorizationService
-import by.eapp.musicroom.domain.repo.login.JwtTokenManager
+import by.eapp.musicroom.data.RegistrationMappers.toDto
+import by.eapp.musicroom.domain.model.auth.LoginData
+import by.eapp.musicroom.domain.model.auth.RegistrationData
+import by.eapp.musicroom.domain.model.auth.SubmitData
+import by.eapp.musicroom.domain.model.auth.Tokens
+import by.eapp.musicroom.domain.repo.auth.login.AuthorizationService
+import by.eapp.musicroom.domain.repo.auth.login.JwtTokenManager
 import by.eapp.musicroom.network.AuthorizationApiService
 import javax.inject.Inject
 
@@ -68,7 +68,6 @@ class AuthorizationServiceImpl @Inject constructor(
             throw Exception("Failed to submit code: ${response.errorBody()?.string()}")
         }
     }
-
 
 
 }

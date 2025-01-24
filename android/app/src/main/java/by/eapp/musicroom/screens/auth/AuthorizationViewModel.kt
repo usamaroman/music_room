@@ -4,10 +4,10 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import by.eapp.musicroom.data.login.repo.AuthAuthenticator
-import by.eapp.musicroom.domain.model.LoginData
-import by.eapp.musicroom.domain.model.RegistrationData
-import by.eapp.musicroom.domain.model.SubmitData
-import by.eapp.musicroom.domain.repo.login.AuthorizationService
+import by.eapp.musicroom.domain.model.auth.LoginData
+import by.eapp.musicroom.domain.model.auth.RegistrationData
+import by.eapp.musicroom.domain.model.auth.SubmitData
+import by.eapp.musicroom.domain.repo.auth.login.AuthorizationService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers

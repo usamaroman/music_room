@@ -1,4 +1,4 @@
-package by.eapp.musicroom.network.model
+package by.eapp.musicroom.network.model.auth
 
 import com.google.gson.annotations.SerializedName
 

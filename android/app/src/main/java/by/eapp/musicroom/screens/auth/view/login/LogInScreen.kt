@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import by.eapp.musicroom.R
-import by.eapp.musicroom.domain.model.LoginData
+import by.eapp.musicroom.domain.model.auth.LoginData
 import by.eapp.musicroom.navigation.Screens
 import by.eapp.musicroom.screens.auth.AuthorizationViewModel
 import by.eapp.musicroom.screens.auth.LoginScreenAction
