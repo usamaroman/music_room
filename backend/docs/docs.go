@@ -195,15 +195,12 @@ const docTemplate = `{
                 "summary": "Get all tracks",
                 "responses": {
                     "200": {
-                        "description": "Returns a list of tracks",
+                        "description": "Array of tracks",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_usamaroman_music_room_backend_internal_storage_dbo.Track"
+                            }
                         }
                     }
                 }
@@ -254,19 +251,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Returns the ID of the created track",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request or missing required fields",
-                        "schema": {
-                            "$ref": "#/definitions/gin.H"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/github_com_usamaroman_music_room_backend_internal_proc_response.CreateTrack"
                         }
                     }
                 }
@@ -297,28 +282,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/github_com_usamaroman_music_room_backend_internal_storage_dbo.Track"
                         }
-                    },
-                    "400": {
-                        "description": "Invalid track ID or track does not exist",
-                        "schema": {
-                            "$ref": "#/definitions/gin.H"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/gin.H"
-                        }
                     }
                 }
             }
         }
     },
     "definitions": {
-        "gin.H": {
-            "type": "object",
-            "additionalProperties": {}
-        },
         "github_com_usamaroman_music_room_backend_internal_proc_request.Login": {
             "type": "object",
             "required": [
@@ -374,6 +343,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_usamaroman_music_room_backend_internal_proc_response.CreateTrack": {
+            "type": "object",
+            "properties": {
+                "id": {
                     "type": "integer"
                 }
             }

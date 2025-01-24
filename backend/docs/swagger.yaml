@@ -1,7 +1,4 @@
 definitions:
-  gin.H:
-    additionalProperties: {}
-    type: object
   github_com_usamaroman_music_room_backend_internal_proc_request.Login:
     properties:
       email:
@@ -40,6 +37,11 @@ definitions:
       code:
         type: string
       user_id:
+        type: integer
+    type: object
+  github_com_usamaroman_music_room_backend_internal_proc_response.CreateTrack:
+    properties:
+      id:
         type: integer
     type: object
   github_com_usamaroman_music_room_backend_internal_proc_response.Login:
@@ -195,13 +197,11 @@ paths:
       - application/json
       responses:
         "200":
-          description: Returns a list of tracks
+          description: Array of tracks
           schema:
-            $ref: '#/definitions/gin.H'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/gin.H'
+            items:
+              $ref: '#/definitions/github_com_usamaroman_music_room_backend_internal_storage_dbo.Track'
+            type: array
       summary: Get all tracks
       tags:
       - Tracks
@@ -237,15 +237,7 @@ paths:
         "201":
           description: Returns the ID of the created track
           schema:
-            $ref: '#/definitions/gin.H'
-        "400":
-          description: Invalid request or missing required fields
-          schema:
-            $ref: '#/definitions/gin.H'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/github_com_usamaroman_music_room_backend_internal_proc_response.CreateTrack'
       summary: Create a new track
       tags:
       - Tracks
@@ -265,14 +257,6 @@ paths:
           description: Returns the track details
           schema:
             $ref: '#/definitions/github_com_usamaroman_music_room_backend_internal_storage_dbo.Track'
-        "400":
-          description: Invalid track ID or track does not exist
-          schema:
-            $ref: '#/definitions/gin.H'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/gin.H'
       summary: Get a track by ID
       tags:
       - Tracks

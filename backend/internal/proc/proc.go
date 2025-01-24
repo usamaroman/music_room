@@ -648,9 +648,7 @@ func (p *proc) refreshToken(c *gin.Context) {
 // @Param artist formData string true "Artist of the track"
 // @Param track formData file true "MP3 file of the track"
 // @Param image formData file true "Image file for the track cover"
-// @Success 201 {object} gin.H "Returns the ID of the created track"
-// @Failure 400 {object} gin.H "Invalid request or missing required fields"
-// @Failure 500 {object} gin.H "Internal server error"
+// @Success 201 {object} response.CreateTrack "Returns the ID of the created track"
 // @Router /tracks [post]
 func (p *proc) createTrack(c *gin.Context) {
 	var req request.Track
@@ -749,17 +747,14 @@ func (p *proc) createTrack(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"track_id": trackID,
-	})
+	c.JSON(http.StatusCreated, response.CreateTrack{ID: trackID})
 }
 
 // @Summary Get all tracks
 // @Description Retrieves a list of all tracks from the database.
 // @Tags Tracks
 // @Produce json
-// @Success 200 {object} gin.H "Returns a list of tracks"
-// @Failure 500 {object} gin.H "Internal server error"
+// @Success 200 {object} []dbo.Track "Array of tracks"
 // @Router /tracks [get]
 func (p *proc) getTracks(c *gin.Context) {
 	tracks, err := p.storage.Tracks().GetAll(c)
@@ -772,9 +767,7 @@ func (p *proc) getTracks(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"tracks": tracks,
-	})
+	c.JSON(http.StatusOK, tracks)
 }
 
 // @Summary Get a track by ID
@@ -783,8 +776,6 @@ func (p *proc) getTracks(c *gin.Context) {
 // @Produce json
 // @Param trackID path int true "Track ID"
 // @Success 200 {object} dbo.Track "Returns the track details"
-// @Failure 400 {object} gin.H "Invalid track ID or track does not exist"
-// @Failure 500 {object} gin.H "Internal server error"
 // @Router /tracks/{trackID} [get]
 func (p *proc) getTrack(c *gin.Context) {
 	id := c.Param("trackID")

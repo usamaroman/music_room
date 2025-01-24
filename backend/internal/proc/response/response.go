@@ -5,10 +5,14 @@ type Registration struct {
 }
 
 type Login struct {
-	AccessToken string `json:"access_token"`
+	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
 }
 
 type Submit struct {
 	Msg string `json:"msg"`
+}
+
+type CreateTrack struct {
+	ID int `json:"id"`
 }
